@@ -4,6 +4,8 @@ Personal blog + portfolio. One Go binary, templ for UI, SQLite on a volume,
 self-hosted on [Disco](https://disco.cloud/docs/). No JS, no CSS framework,
 no ORM.
 
+Repo: <https://github.com/mattbx/mattbx-go>
+
 ## Commands
 
 - `./scripts/local.sh` — the only command needed to run locally. Creates `.env`,
@@ -30,6 +32,9 @@ These will break the deploy if violated:
 - **Keep the Alpine runtime base.** Disco's health check runs a shell command
   inside the container; distroless/scratch has no shell or `wget`.
 - **Never put secrets in `disco.json`** — it is committed. Use `disco env:set`.
+- **`main` is wired to production.** Disco deploys on push, with no staging
+  step, so do the work on a branch and merge deliberately. The repo is public:
+  anything committed is effectively permanent.
 
 ## Conventions
 
@@ -62,23 +67,3 @@ These will break the deploy if violated:
   Wrong for prose; deliberately not enabled.
 - `ADMIN_PASSWORD` and `PORTFOLIO_PASSWORD` must differ — startup refuses
   otherwise, so a portfolio visitor can never reach `/admin`.
-
-## Milestone reviews
-
-At the end of a major session or milestone, write a review entry into
-[LEARNINGS.md](LEARNINGS.md): **what we did, what we learnt, issues, ideas.**
-Newest entry first.
-
-Trigger it either way:
-
-- **Matt asks** — "let's do a milestone review", or similar.
-- **Claude proposes it** when the moment fits: a feature landed with tests
-  passing, a deploy is imminent, several non-obvious findings have piled up, or
-  the session is clearly wrapping up.
-
-Propose it in one line and accept a "no" — never interrupt work in progress to
-suggest it, and never write an entry without saying so. Prefer specifics that
-would save a future session real time (a wrong assumption, a subtle bug and its
-signature, a decision and its reasoning) over a changelog of files touched;
-`git log` already covers that. When a learning is a durable rule rather than a
-one-off, promote it into the sections above as well.

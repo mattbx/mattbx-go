@@ -1,5 +1,7 @@
 # mattbx-go
 
+<https://github.com/mattbx/mattbx-go>
+
 A personal blog and portfolio. One Go binary, SQLite on a volume, no build
 pipeline and no JavaScript.
 
@@ -43,13 +45,6 @@ PORTFOLIO_PASSWORD=...
 
 They must differ — the server refuses to start otherwise.
 
-## Working notes
-
-- [CLAUDE.md](CLAUDE.md) — project conventions and hard constraints, loaded by
-  Claude Code each session.
-- [LEARNINGS.md](LEARNINGS.md) — a running log of milestone reviews: what was
-  done, what was learnt, issues, ideas. Newest first.
-
 ## Tests
 
 ```bash
@@ -87,7 +82,7 @@ Site name, role, and tagline are constants at the top of
 The repo carries a `Dockerfile` and a `disco.json`; Disco needs nothing else.
 
 ```bash
-disco projects:add --name mattbx --domain your.domain --github youruser/mattbx-go
+disco projects:add --name mattbx --domain your.domain --github mattbx/mattbx-go
 ```
 
 Then set the secrets, which are deliberately absent from the image:

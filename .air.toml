@@ -1,0 +1,25 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go tool templ generate && go build -o ./tmp/main ./cmd/web"
+  bin = "./tmp/main"
+  delay = 200
+  include_ext = ["go", "templ", "css", "sql"]
+  exclude_dir = ["tmp", "vendor", "data", "scripts", ".git"]
+  exclude_regex = ["_templ.go$", "_test.go$"]
+  exclude_unchanged = true
+  stop_on_error = true
+  send_interrupt = true
+  kill_delay = 2000
+
+[proxy]
+  enabled = true
+  app_port = 8080
+  proxy_port = 8383
+
+[screen]
+  clear_on_rebuild = true
+
+[misc]
+  clean_on_exit = true

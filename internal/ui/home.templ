@@ -1,0 +1,36 @@
+package ui
+
+import "github.com/mattbx/mattbx-go/internal/db"
+
+templ Home(p Page, posts []*db.Post) {
+	@Layout(p) {
+		<div class="page-head">
+			<p class="eyebrow">{ SiteRole }</p>
+			<h1 class="page-title">{ SiteName }</h1>
+			<p class="page-lede">{ SiteTagline }</p>
+		</div>
+		if len(posts) > 0 {
+			<section aria-labelledby="recent">
+				<div class="section-head">
+					<h2 id="recent">Recent writing</h2>
+					<a href="/blog">All posts →</a>
+				</div>
+				<ol class="ledger">
+					for _, post := range posts {
+						@postEntry(post)
+					}
+				</ol>
+			</section>
+		}
+		<section aria-labelledby="work">
+			<div class="section-head">
+				<h2 id="work">Selected work</h2>
+			</div>
+			<p class="page-lede">
+				The portfolio is shared privately. If you need access,
+				ask me for the password and it will open at
+				{ " " }<a href="/portfolio">/portfolio</a>.
+			</p>
+		</section>
+	}
+}

@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "services": {
+    "web": {
+      "port": 8080,
+      "volumes": [
+        {
+          "name": "sqlite-data",
+          "destinationPath": "/data"
+        }
+      ],
+      "health": {
+        "command": "wget -q -O- http://localhost:8080/healthz || exit 1"
+      }
+    }
+  }
+}

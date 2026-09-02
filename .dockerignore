@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+/data
+/tmp
+/build
+*.db
+*.db-shm
+*.db-wal
+*_templ.go
+README.md

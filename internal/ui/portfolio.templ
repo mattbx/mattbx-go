@@ -1,0 +1,108 @@
+package ui
+
+import "github.com/mattbx/mattbx-go/internal/db"
+
+templ PortfolioIndex(p Page, projects []*db.Project) {
+	@Layout(p) {
+		<div class="page-head">
+			<p class="eyebrow">{ postCount(len(projects), "project", "projects") }</p>
+			<h1 class="page-title">Selected work</h1>
+			<p class="page-lede">
+				Thanks for the interest. Here's what I've built, most relevant first.
+			</p>
+		</div>
+		if len(projects) == 0 {
+			<p class="empty">No projects published yet.</p>
+		} else {
+			<ol class="ledger">
+				for _, project := range projects {
+					@projectEntry(project)
+				}
+			</ol>
+		}
+	}
+}
+
+templ projectEntry(project *db.Project) {
+	<li class="entry">
+		<div class="entry__meta">
+			if project.Role != "" {
+				<span>{ project.Role }</span>
+			}
+			<time datetime={ machineDate(project.CreatedAt) }>{ project.CreatedAt.Format("2006") }</time>
+			if !project.Published {
+				<span class="badge badge--draft">draft</span>
+			}
+		</div>
+		<div>
+			<h2 class="entry__title">
+				<a href={ templ.SafeURL("/portfolio/" + project.Slug) }>{ project.Title }</a>
+			</h2>
+			if project.Summary != "" {
+				<p class="entry__summary">{ project.Summary }</p>
+			}
+			if hasLinks(project) {
+				<div class="entry__links">
+					if project.LinkURL != "" {
+						<a href={ templ.SafeURL(project.LinkURL) } rel="noopener noreferrer" target="_blank">Live ↗</a>
+					}
+					if project.RepoURL != "" {
+						<a href={ templ.SafeURL(project.RepoURL) } rel="noopener noreferrer" target="_blank">Source ↗</a>
+					}
+				</div>
+			}
+		</div>
+	</li>
+}
+
+templ PortfolioProject(p Page, project *db.Project) {
+	@Layout(p) {
+		<article class="leaf">
+			<aside class="rail">
+				if project.Role != "" {
+					<span class="rail__line">
+						<span class="rail__key">Role</span>
+						<span class="rail__value">{ project.Role }</span>
+					</span>
+				}
+				<span class="rail__line">
+					<span class="rail__key">Year</span>
+					<span class="rail__value">{ project.CreatedAt.Format("2006") }</span>
+				</span>
+				if len(project.TechList()) > 0 {
+					<div class="rail__rule"></div>
+					<span class="rail__key">Stack</span>
+					<span class="rail__tags">
+						for _, tech := range project.TechList() {
+							<span class="rail__tag">{ tech }</span>
+						}
+					</span>
+				}
+				if hasLinks(project) {
+					<div class="rail__rule"></div>
+					if project.LinkURL != "" {
+						<a href={ templ.SafeURL(project.LinkURL) } rel="noopener noreferrer" target="_blank">Live ↗</a>
+					}
+					if project.RepoURL != "" {
+						<a href={ templ.SafeURL(project.RepoURL) } rel="noopener noreferrer" target="_blank">Source ↗</a>
+					}
+				}
+				if p.IsAdmin {
+					<div class="rail__rule"></div>
+					<a href={ templ.SafeURL(editProjectPath(project.ID)) }>Edit</a>
+				}
+			</aside>
+			<div>
+				<header class="page-head">
+					<h1 class="page-title">{ project.Title }</h1>
+					if project.Summary != "" {
+						<p class="page-lede">{ project.Summary }</p>
+					}
+				</header>
+				<div class="prose">
+					@templ.Raw(project.BodyHTML)
+				</div>
+			</div>
+		</article>
+	}
+}

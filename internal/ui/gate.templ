@@ -1,0 +1,43 @@
+package ui
+
+// GateView describes a password prompt. The copy differs by scope: the
+// portfolio gate is an invitation, the admin gate is a door.
+type GateView struct {
+	Mark    string // small label above the title
+	Title   string
+	Lede    string
+	Action  string // form POST target
+	Next    string // sanitised post-login redirect
+	Error   string // shown when a submission failed
+	Confirm string // submit button label
+}
+
+templ Gate(p Page, v GateView) {
+	@Layout(p) {
+		<div class="gate">
+			<p class="gate__mark">{ v.Mark }</p>
+			<h1 class="gate__title">{ v.Title }</h1>
+			<p class="gate__lede">{ v.Lede }</p>
+			if v.Error != "" {
+				<p class="notice" role="alert">{ v.Error }</p>
+			}
+			<form method="post" action={ templ.SafeURL(v.Action) }>
+				if v.Next != "" {
+					<input type="hidden" name="next" value={ v.Next }/>
+				}
+				<label class="field">
+					<span class="field__label">Password</span>
+					<input
+						class="input"
+						type="password"
+						name="password"
+						autocomplete="current-password"
+						required
+						autofocus
+					/>
+				</label>
+				<button class="button" type="submit">{ v.Confirm }</button>
+			</form>
+		</div>
+	}
+}

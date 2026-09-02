@@ -1,0 +1,75 @@
+package ui
+
+import "github.com/mattbx/mattbx-go/internal/ui/static"
+
+// Layout is the shell every page renders into.
+templ Layout(p Page) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ p.DocumentTitle() }</title>
+			if p.Description != "" {
+				<meta name="description" content={ p.Description }/>
+				<meta property="og:description" content={ p.Description }/>
+			}
+			<meta property="og:title" content={ p.DocumentTitle() }/>
+			<meta property="og:type" content="website"/>
+			<meta property="og:url" content={ p.CanonicalURL() }/>
+			<link rel="canonical" href={ templ.SafeURL(p.CanonicalURL()) }/>
+			<link rel="alternate" type="application/rss+xml" title={ SiteName } href="/feed.xml"/>
+			<link rel="icon" href={ static.URL("favicon.svg") } type="image/svg+xml"/>
+			<link rel="stylesheet" href={ static.URL("main.css") }/>
+			<link rel="stylesheet" href={ static.URL("chroma.css") }/>
+		</head>
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			if p.IsAdmin {
+				@adminBar()
+			}
+			<header class="masthead">
+				<div class="shell masthead__inner">
+					<a class="wordmark" href="/">{ SiteMark }</a>
+					<nav class="nav" aria-label="Primary">
+						<a href="/blog" { current(p.Nav == "blog")... }>Blog</a>
+						<a href="/portfolio" class="is-locked" { current(p.Nav == "portfolio")... }>Portfolio</a>
+					</nav>
+				</div>
+			</header>
+			<main class="main shell" id="main">
+				{ children... }
+			</main>
+			<footer class="colophon shell">
+				<span>© { p.Year() } { SiteName }</span>
+				<span>
+					<a href="/feed.xml">RSS</a>
+					{ " · " }
+					Go, templ, SQLite. Self-hosted.
+				</span>
+			</footer>
+		</body>
+	</html>
+}
+
+// adminBar is a persistent reminder that you are signed in with write access.
+templ adminBar() {
+	<div class="admin-bar">
+		<div class="shell admin-bar__inner">
+			<a href="/admin">Admin</a>
+			<a href="/admin/posts/new">New post</a>
+			<a href="/admin/projects/new">New project</a>
+			<form method="post" action="/admin/logout">
+				<button type="submit">Sign out</button>
+			</form>
+		</div>
+	</div>
+}
+
+// current marks the active nav item for assistive technology and styling.
+func current(active bool) templ.Attributes {
+	if active {
+		return templ.Attributes{"aria-current": "page"}
+	}
+	return templ.Attributes{}
+}

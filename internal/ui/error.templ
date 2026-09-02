@@ -1,0 +1,13 @@
+package ui
+
+// ErrorPage renders a dead end without pretending to be clever about it.
+templ ErrorPage(p Page, status int, headline, detail string) {
+	@Layout(p) {
+		<div class="gate">
+			<p class="gate__mark">{ errorCode(status) }</p>
+			<h1 class="gate__title">{ headline }</h1>
+			<p class="gate__lede">{ detail }</p>
+			<a class="button button--quiet" href="/">Back to the front page</a>
+		</div>
+	}
+}

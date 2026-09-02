@@ -1,0 +1,223 @@
+package ui
+
+import "github.com/mattbx/mattbx-go/internal/db"
+
+templ AdminDashboard(p Page, posts []*db.Post, projects []*db.Project) {
+	@Layout(p) {
+		<div class="page-head">
+			<p class="eyebrow">Admin</p>
+			<h1 class="page-title">Everything you've written</h1>
+			<p class="page-lede">
+				Drafts are visible here and to you on the site, but never to anyone else.
+			</p>
+		</div>
+		<section aria-labelledby="posts">
+			<div class="section-head">
+				<h2 id="posts">Posts</h2>
+				<a class="button button--quiet" href="/admin/posts/new">Write a post</a>
+			</div>
+			if len(posts) == 0 {
+				<p class="empty">No posts yet. Write the first one.</p>
+			} else {
+				<ul class="rowlist">
+					for _, post := range posts {
+						<li>
+							<a class="rowlist__title" href={ templ.SafeURL(editPostPath(post.ID)) }>{ post.Title }</a>
+							<span class={ "badge", statusClass(post.Published) }>{ statusOf(post.Published) }</span>
+							<span class="rowlist__meta">{ railDate(post.Date()) }</span>
+							<a class="rowlist__meta" href={ templ.SafeURL("/blog/" + post.Slug) }>View</a>
+						</li>
+					}
+				</ul>
+			}
+		</section>
+		<section aria-labelledby="projects">
+			<div class="section-head">
+				<h2 id="projects">Portfolio projects</h2>
+				<a class="button button--quiet" href="/admin/projects/new">Add a project</a>
+			</div>
+			if len(projects) == 0 {
+				<p class="empty">No projects yet. Add the first one.</p>
+			} else {
+				<ul class="rowlist">
+					for _, project := range projects {
+						<li>
+							<a class="rowlist__title" href={ templ.SafeURL(editProjectPath(project.ID)) }>{ project.Title }</a>
+							<span class={ "badge", statusClass(project.Published) }>{ statusOf(project.Published) }</span>
+							<span class="rowlist__meta">order { orderLabel(project.SortOrder) }</span>
+							<a class="rowlist__meta" href={ templ.SafeURL("/portfolio/" + project.Slug) }>View</a>
+						</li>
+					}
+				</ul>
+			}
+		</section>
+	}
+}
+
+// PostFormView carries a post form's state, including anything the user just
+// typed, so a validation failure never loses their work.
+type PostFormView struct {
+	Post   *db.Post
+	IsNew  bool
+	Action string
+	Error  string
+}
+
+templ PostForm(p Page, v PostFormView) {
+	@Layout(p) {
+		<div class="page-head">
+			<p class="eyebrow">{ formEyebrow(v.IsNew, "post") }</p>
+			<h1 class="page-title">{ formTitle(v.IsNew, v.Post.Title, "Write a post") }</h1>
+		</div>
+		if v.Error != "" {
+			<p class="notice" role="alert">{ v.Error }</p>
+		}
+		<form method="post" action={ templ.SafeURL(v.Action) }>
+			<label class="field">
+				<span class="field__label">Title</span>
+				<input class="input" type="text" name="title" value={ v.Post.Title } required autofocus/>
+			</label>
+			<label class="field">
+				<span class="field__label">
+					Slug
+					<span class="field__hint">The URL after /blog/. Leave blank to build one from the title.</span>
+				</span>
+				<input class="input" type="text" name="slug" value={ v.Post.Slug }/>
+			</label>
+			<label class="field">
+				<span class="field__label">
+					Summary
+					<span class="field__hint">One or two sentences, shown on the index and in search results.</span>
+				</span>
+				<textarea class="textarea textarea--short" name="summary">{ v.Post.Summary }</textarea>
+			</label>
+			<label class="field">
+				<span class="field__label">
+					Body
+					<span class="field__hint">Markdown. Fenced code blocks are highlighted.</span>
+				</span>
+				<textarea class="textarea" name="body_md">{ v.Post.BodyMD }</textarea>
+			</label>
+			<label class="checkline">
+				<input type="checkbox" name="published" value="1" checked?={ v.Post.Published }/>
+				Publish this post
+			</label>
+			@formActions(v.IsNew, deletePostPath(v.Post.ID), "/admin")
+		</form>
+	}
+}
+
+// ProjectFormView is the portfolio equivalent of PostFormView.
+type ProjectFormView struct {
+	Project *db.Project
+	IsNew   bool
+	Action  string
+	Error   string
+}
+
+templ ProjectForm(p Page, v ProjectFormView) {
+	@Layout(p) {
+		<div class="page-head">
+			<p class="eyebrow">{ formEyebrow(v.IsNew, "project") }</p>
+			<h1 class="page-title">{ formTitle(v.IsNew, v.Project.Title, "Add a project") }</h1>
+		</div>
+		if v.Error != "" {
+			<p class="notice" role="alert">{ v.Error }</p>
+		}
+		<form method="post" action={ templ.SafeURL(v.Action) }>
+			<label class="field">
+				<span class="field__label">Title</span>
+				<input class="input" type="text" name="title" value={ v.Project.Title } required autofocus/>
+			</label>
+			<label class="field">
+				<span class="field__label">
+					Slug
+					<span class="field__hint">The URL after /portfolio/. Leave blank to build one from the title.</span>
+				</span>
+				<input class="input" type="text" name="slug" value={ v.Project.Slug }/>
+			</label>
+			<label class="field">
+				<span class="field__label">
+					Summary
+					<span class="field__hint">The one-line pitch shown on the portfolio index.</span>
+				</span>
+				<textarea class="textarea textarea--short" name="summary">{ v.Project.Summary }</textarea>
+			</label>
+			<div class="field-row">
+				<label class="field">
+					<span class="field__label">
+						Role
+						<span class="field__hint">What you did, e.g. "Lead engineer".</span>
+					</span>
+					<input class="input" type="text" name="role" value={ v.Project.Role }/>
+				</label>
+				<label class="field">
+					<span class="field__label">
+						Stack
+						<span class="field__hint">Comma separated, e.g. "Go, SQLite, templ".</span>
+					</span>
+					<input class="input" type="text" name="tech" value={ v.Project.Tech }/>
+				</label>
+			</div>
+			<div class="field-row">
+				<label class="field">
+					<span class="field__label">Live URL</span>
+					<input class="input" type="url" name="link_url" value={ v.Project.LinkURL } placeholder="https://"/>
+				</label>
+				<label class="field">
+					<span class="field__label">Source URL</span>
+					<input class="input" type="url" name="repo_url" value={ v.Project.RepoURL } placeholder="https://"/>
+				</label>
+			</div>
+			<label class="field">
+				<span class="field__label">
+					Order
+					<span class="field__hint">Lower numbers come first on the index.</span>
+				</span>
+				<input class="input" type="number" name="sort_order" value={ orderLabel(v.Project.SortOrder) } step="1"/>
+			</label>
+			<label class="field">
+				<span class="field__label">
+					Body
+					<span class="field__hint">Markdown. The full case study.</span>
+				</span>
+				<textarea class="textarea" name="body_md">{ v.Project.BodyMD }</textarea>
+			</label>
+			<label class="checkline">
+				<input type="checkbox" name="published" value="1" checked?={ v.Project.Published }/>
+				Publish this project
+			</label>
+			@formActions(v.IsNew, deleteProjectPath(v.Project.ID), "/admin")
+		</form>
+	}
+}
+
+// formActions renders Save / Cancel, plus Delete once the record exists.
+templ formActions(isNew bool, deletePath, cancelPath string) {
+	<div class="actions">
+		<button class="button" type="submit">Save</button>
+		<a class="button button--quiet" href={ templ.SafeURL(cancelPath) }>Cancel</a>
+		if !isNew {
+			<span class="actions__spacer"></span>
+			<a class="button button--danger" href={ templ.SafeURL(deletePath) }>Delete</a>
+		}
+	</div>
+}
+
+// ConfirmDelete is a real page rather than a JavaScript dialog, so the
+// destructive step works the same with or without scripting.
+templ ConfirmDelete(p Page, title, action, cancelPath string) {
+	@Layout(p) {
+		<div class="gate">
+			<p class="gate__mark">Delete</p>
+			<h1 class="gate__title">Delete “{ title }”?</h1>
+			<p class="gate__lede">This removes it permanently. There's no undo.</p>
+			<form method="post" action={ templ.SafeURL(action) }>
+				<div class="actions">
+					<button class="button button--danger" type="submit">Delete permanently</button>
+					<a class="button button--quiet" href={ templ.SafeURL(cancelPath) }>Keep it</a>
+				</div>
+			</form>
+		</div>
+	}
+}

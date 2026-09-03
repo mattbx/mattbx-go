@@ -124,7 +124,7 @@ func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 	for _, post := range posts {
 		url := s.cfg.BaseURL + "/blog/" + post.Slug
 		feed.Channel.Items = append(feed.Channel.Items, rssItem{
-			Title:       post.Title,
+			Title:       ui.DisplayTitle(post),
 			Link:        url,
 			GUID:        url,
 			PubDate:     post.Date().Format(time.RFC1123Z),

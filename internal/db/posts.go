@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -23,7 +24,22 @@ type Post struct {
 	PublishedAt sql.NullTime
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	Tags        string // comma-separated; see TagList. Populated by /admin or Micropub's category[].
 }
+
+// TagList splits the comma-separated Tags field for rendering as tags.
+func (p *Post) TagList() []string {
+	var out []string
+	for _, part := range strings.Split(p.Tags, ",") {
+		if t := strings.TrimSpace(part); t != "" {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
+// PermalinkPath is the post's site-relative URL, e.g. "/blog/hello-world".
+func (p *Post) PermalinkPath() string { return "/blog/" + p.Slug }
 
 // Date is the human-facing publication date, falling back to the creation date
 // for drafts that have never been published.
@@ -38,12 +54,12 @@ type PostStore struct{ db *sql.DB }
 
 func NewPostStore(sqlDB *sql.DB) *PostStore { return &PostStore{db: sqlDB} }
 
-const postColumns = `id, slug, title, summary, body_md, body_html, published, published_at, created_at, updated_at`
+const postColumns = `id, slug, title, summary, body_md, body_html, published, published_at, created_at, updated_at, tags`
 
 func scanPost(row interface{ Scan(...any) error }) (*Post, error) {
 	var p Post
 	err := row.Scan(&p.ID, &p.Slug, &p.Title, &p.Summary, &p.BodyMD, &p.BodyHTML,
-		&p.Published, &p.PublishedAt, &p.CreatedAt, &p.UpdatedAt)
+		&p.Published, &p.PublishedAt, &p.CreatedAt, &p.UpdatedAt, &p.Tags)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -102,9 +118,9 @@ func (s *PostStore) Create(ctx context.Context, p *Post) error {
 	p.PublishedAt = publishStamp(p.Published, p.PublishedAt, now)
 
 	res, err := s.db.ExecContext(ctx,
-		`INSERT INTO posts (slug, title, summary, body_md, body_html, published, published_at, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		p.Slug, p.Title, p.Summary, p.BodyMD, p.BodyHTML, p.Published, p.PublishedAt, p.CreatedAt, p.UpdatedAt)
+		`INSERT INTO posts (slug, title, summary, body_md, body_html, published, published_at, created_at, updated_at, tags)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		p.Slug, p.Title, p.Summary, p.BodyMD, p.BodyHTML, p.Published, p.PublishedAt, p.CreatedAt, p.UpdatedAt, p.Tags)
 	if err != nil {
 		return fmt.Errorf("create post: %w", err)
 	}
@@ -119,8 +135,8 @@ func (s *PostStore) Update(ctx context.Context, p *Post) error {
 
 	res, err := s.db.ExecContext(ctx,
 		`UPDATE posts SET slug = ?, title = ?, summary = ?, body_md = ?, body_html = ?,
-		 published = ?, published_at = ?, updated_at = ? WHERE id = ?`,
-		p.Slug, p.Title, p.Summary, p.BodyMD, p.BodyHTML, p.Published, p.PublishedAt, p.UpdatedAt, p.ID)
+		 published = ?, published_at = ?, updated_at = ?, tags = ? WHERE id = ?`,
+		p.Slug, p.Title, p.Summary, p.BodyMD, p.BodyHTML, p.Published, p.PublishedAt, p.UpdatedAt, p.Tags, p.ID)
 	if err != nil {
 		return fmt.Errorf("update post: %w", err)
 	}

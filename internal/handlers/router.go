@@ -27,6 +27,12 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /healthz", s.handleHealth)
 	mux.Handle("GET /static/", static.Handler())
 
+	// Micropub has its own bearer-token auth (see micropub.go), a third
+	// scheme alongside the cookie-scoped admin/portfolio sessions above —
+	// registered bare here because requireAdmin/requirePortfolio don't apply.
+	mux.HandleFunc("GET /micropub", s.handleMicropubQuery)
+	mux.HandleFunc("POST /micropub", s.handleMicropubAction)
+
 	// --- Sign in / out ----------------------------------------------------
 	mux.HandleFunc("GET /portfolio/login", s.handlePortfolioLoginForm)
 	mux.HandleFunc("POST /portfolio/login", s.handlePortfolioLogin)
@@ -94,7 +100,7 @@ func (s *Server) securityHeaders(next http.Handler) http.Handler {
 }
 
 func isPrivatePath(path string) bool {
-	return path == "/admin" || path == "/portfolio" ||
+	return path == "/admin" || path == "/portfolio" || path == "/micropub" ||
 		hasPrefix(path, "/admin/") || hasPrefix(path, "/portfolio/")
 }
 

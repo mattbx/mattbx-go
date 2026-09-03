@@ -18,6 +18,7 @@ import (
 const (
 	adminPassword     = "admin-secret"
 	portfolioPassword = "portfolio-secret"
+	micropubToken     = "micropub-test-token-0123456789ab" // >= 32 chars, config requires it
 )
 
 // newTestServer builds a server backed by a throwaway database.
@@ -38,6 +39,7 @@ func newTestServer(t *testing.T) (*Server, http.Handler, *db.PostStore, *db.Proj
 		AdminPassword:     adminPassword,
 		PortfolioPassword: portfolioPassword,
 		SessionSecret:     []byte("0123456789abcdef0123456789abcdef"),
+		MicropubToken:     micropubToken,
 	}
 
 	s := New(cfg, sqlDB, slog.New(slog.NewTextHandler(io.Discard, nil)))

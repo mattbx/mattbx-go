@@ -27,6 +27,17 @@ if ! grep -qE '^SESSION_SECRET=.{32,}' .env; then
   echo "==> Generated SESSION_SECRET in .env"
 fi
 
+if ! grep -qE '^MICROPUB_TOKEN=.{32,}' .env; then
+  token="$(openssl rand -hex 32)"
+  if grep -qE '^MICROPUB_TOKEN=' .env; then
+    tmp="$(mktemp)"
+    sed "s|^MICROPUB_TOKEN=.*|MICROPUB_TOKEN=${token}|" .env > "$tmp" && mv "$tmp" .env
+  else
+    printf 'MICROPUB_TOKEN=%s\n' "$token" >> .env
+  fi
+  echo "==> Generated MICROPUB_TOKEN in .env"
+fi
+
 mkdir -p data tmp
 go mod download
 go tool templ generate

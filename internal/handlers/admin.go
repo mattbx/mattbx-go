@@ -61,7 +61,7 @@ func (s *Server) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 		s.serverError(w, r, err)
 		return
 	}
-	http.Redirect(w, r, "/blog/"+post.Slug, http.StatusSeeOther)
+	http.Redirect(w, r, post.PermalinkPath(), http.StatusSeeOther)
 }
 
 func (s *Server) handleUpdatePost(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +81,7 @@ func (s *Server) handleUpdatePost(w http.ResponseWriter, r *http.Request) {
 		s.serverError(w, r, err)
 		return
 	}
-	http.Redirect(w, r, "/blog/"+post.Slug, http.StatusSeeOther)
+	http.Redirect(w, r, post.PermalinkPath(), http.StatusSeeOther)
 }
 
 // bindPost fills post from the submitted form, validates it, and re-renders

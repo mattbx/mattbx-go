@@ -19,6 +19,7 @@ templ Layout(p Page) {
 			<meta property="og:url" content={ p.CanonicalURL() }/>
 			<link rel="canonical" href={ templ.SafeURL(p.CanonicalURL()) }/>
 			<link rel="alternate" type="application/rss+xml" title={ SiteName } href="/feed.xml"/>
+			<link rel="micropub" href={ templ.SafeURL(p.BaseURL + "/micropub") }/>
 			<link rel="icon" href={ static.URL("favicon.svg") } type="image/svg+xml"/>
 			<link rel="stylesheet" href={ static.URL("main.css") }/>
 			<link rel="stylesheet" href={ static.URL("chroma.css") }/>

@@ -404,3 +404,182 @@ func TestMicropubPathIsNotIndexable(t *testing.T) {
 		t.Errorf("Cache-Control = %q, want no-store", got)
 	}
 }
+
+// --- Fixes from code review -------------------------------------------
+
+func TestMicropubCategoryWithEmbeddedCommaDoesNotSplit(t *testing.T) {
+	_, h, posts, _ := newTestServer(t)
+
+	w := micropubPostForm(h, micropubToken, url.Values{
+		"h": {"entry"}, "name": {"Comma Tag"}, "content": {"body"},
+		"category[]": {"before, after", "second"},
+	})
+	if w.Code != http.StatusCreated {
+		t.Fatalf("status = %d: %s", w.Code, w.Body.String())
+	}
+	post, err := posts.GetBySlug(context.Background(), "comma-tag", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tags := post.TagList()
+	if len(tags) != 2 {
+		t.Fatalf("tags = %v, want exactly 2 (the embedded comma must not split a tag in two)", tags)
+	}
+	if tags[0] != "before after" || tags[1] != "second" {
+		t.Errorf("tags = %v, want [\"before after\" \"second\"] (comma swapped for a space, no double space)", tags)
+	}
+}
+
+func TestMicropubAcceptsBareCategoryFormField(t *testing.T) {
+	_, h, posts, _ := newTestServer(t)
+
+	w := micropubPostForm(h, micropubToken, url.Values{
+		"h": {"entry"}, "name": {"Bare Category"}, "content": {"body"},
+		"category": {"go"}, // no [] suffix
+	})
+	if w.Code != http.StatusCreated {
+		t.Fatalf("status = %d: %s", w.Code, w.Body.String())
+	}
+	post, err := posts.GetBySlug(context.Background(), "bare-category", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tags := post.TagList(); len(tags) != 1 || tags[0] != "go" {
+		t.Errorf("tags = %v, want [go] from the bracket-less category field", tags)
+	}
+}
+
+func TestMicropubSourceHonorsPropertiesFilter(t *testing.T) {
+	_, h, posts, _ := newTestServer(t)
+	ctx := context.Background()
+	if err := posts.Create(ctx, &db.Post{
+		Slug: "filtered", Title: "Filtered", BodyMD: "content", Published: true, Tags: "a",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	q := url.Values{
+		"q":            {"source"},
+		"url":          {"https://example.test/blog/filtered"},
+		"properties[]": {"content"},
+	}
+	w := micropubGet(h, "/micropub?"+q.Encode(), micropubToken)
+	body := decodeJSON(t, w)
+	props, _ := body["properties"].(map[string]any)
+
+	if _, ok := props["content"]; !ok {
+		t.Error("requested property \"content\" missing from filtered response")
+	}
+	if _, ok := props["name"]; ok {
+		t.Error("unrequested property \"name\" leaked into a filtered response")
+	}
+	if _, ok := props["category"]; ok {
+		t.Error("unrequested property \"category\" leaked into a filtered response")
+	}
+}
+
+func TestMicropubUpdateDeleteAsArrayClearsCategory(t *testing.T) {
+	_, h, posts, _ := newTestServer(t)
+	ctx := context.Background()
+	if err := posts.Create(ctx, &db.Post{
+		Slug: "del1", Title: "Del1", Published: true, Tags: "a, b",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	w := micropubPostJSON(h, micropubToken, map[string]any{
+		"action": "update",
+		"url":    "https://example.test/blog/del1",
+		"delete": []string{"category"},
+	})
+	if w.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, want 204: %s", w.Code, w.Body.String())
+	}
+	got, err := posts.GetBySlug(ctx, "del1", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got.TagList()) != 0 {
+		t.Errorf("tags = %v, want cleared by delete:[\"category\"]", got.TagList())
+	}
+}
+
+func TestMicropubUpdateDeleteAsObjectRemovesSpecificValues(t *testing.T) {
+	_, h, posts, _ := newTestServer(t)
+	ctx := context.Background()
+	if err := posts.Create(ctx, &db.Post{
+		Slug: "del2", Title: "Del2", Published: true, Tags: "a, b, c",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	w := micropubPostJSON(h, micropubToken, map[string]any{
+		"action": "update",
+		"url":    "https://example.test/blog/del2",
+		"delete": map[string][]string{"category": {"b"}},
+	})
+	if w.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, want 204: %s", w.Code, w.Body.String())
+	}
+	got, err := posts.GetBySlug(ctx, "del2", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tags := got.TagList()
+	if len(tags) != 2 || tags[0] != "a" || tags[1] != "c" {
+		t.Errorf("tags = %v, want [a c] (only \"b\" removed)", tags)
+	}
+}
+
+// A delete request naming a property we can't actually remove must fail
+// loudly (400), not silently succeed (204) while doing nothing — a 204 there
+// would tell the client its request worked when it didn't.
+func TestMicropubUpdateDeleteUnsupportedPropertyRejected(t *testing.T) {
+	_, h, posts, _ := newTestServer(t)
+	ctx := context.Background()
+	if err := posts.Create(ctx, &db.Post{
+		Slug: "del3", Title: "Keep Me", BodyMD: "keep this content", Published: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, shape := range []any{
+		[]string{"content"},
+		map[string][]string{"name": {"x"}},
+	} {
+		w := micropubPostJSON(h, micropubToken, map[string]any{
+			"action": "update",
+			"url":    "https://example.test/blog/del3",
+			"delete": shape,
+		})
+		if w.Code != http.StatusBadRequest {
+			t.Errorf("delete %#v: status = %d, want 400", shape, w.Code)
+		}
+	}
+
+	// And nothing was actually mutated by the rejected attempts.
+	got, err := posts.GetBySlug(ctx, "del3", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Title != "Keep Me" || got.BodyMD != "keep this content" {
+		t.Errorf("a rejected delete still mutated the post: title=%q body=%q", got.Title, got.BodyMD)
+	}
+}
+
+// The auth check is now router-level middleware rather than an inline call
+// in each handler; this confirms the handlers themselves are unreachable
+// without it, i.e. the middleware genuinely gates them rather than just
+// happening to run first.
+func TestMicropubMiddlewareGatesBothRoutes(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+
+	get := micropubGet(h, "/micropub?q=config", "")
+	if get.Code != http.StatusUnauthorized {
+		t.Errorf("GET without token: status = %d, want 401", get.Code)
+	}
+	post := micropubPostForm(h, "", url.Values{"h": {"entry"}, "content": {"x"}})
+	if post.Code != http.StatusUnauthorized {
+		t.Errorf("POST without token: status = %d, want 401", post.Code)
+	}
+}

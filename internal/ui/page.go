@@ -138,13 +138,19 @@ func DisplayTitle(post *db.Post) string {
 }
 
 // snippet collapses whitespace/newlines and truncates on a word boundary.
+//
+// max counts runes, not bytes: len() and a raw byte slice both operate on
+// UTF-8 bytes, so cutting at a byte index can land inside a multi-byte rune
+// (any non-ASCII text — accents, CJK, emoji) and produce invalid UTF-8.
+// []rune makes the cut land on a character boundary regardless of encoding.
 func snippet(source string, max int) string {
 	fields := strings.Fields(source)
 	joined := strings.Join(fields, " ")
-	if len(joined) <= max {
+	runes := []rune(joined)
+	if len(runes) <= max {
 		return joined
 	}
-	cut := joined[:max]
+	cut := string(runes[:max])
 	if i := strings.LastIndex(cut, " "); i > 0 {
 		cut = cut[:i]
 	}

@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -55,31 +56,31 @@ func micropubError(w http.ResponseWriter, status int, code, description string) 
 	})
 }
 
-// requireMicropubToken checks the bearer token and reports whether the
-// request may proceed. Constant-time compare, matching the password checks
-// in internal/auth.
-func (s *Server) requireMicropubToken(w http.ResponseWriter, r *http.Request) bool {
-	auth := r.Header.Get("Authorization")
-	token, ok := strings.CutPrefix(auth, "Bearer ")
-	if !ok || token == "" {
-		micropubError(w, http.StatusUnauthorized, "unauthorized", "no access token supplied")
-		return false
-	}
-	if subtle.ConstantTimeCompare([]byte(token), []byte(s.cfg.MicropubToken)) != 1 {
-		micropubError(w, http.StatusUnauthorized, "unauthorized", "invalid access token")
-		return false
-	}
-	return true
+// requireMicropubToken is Micropub's own auth middleware — a bearer token
+// rather than a cookie scope, so it can't use auth.Manager.Require, but it's
+// wired in router.go exactly like requireAdmin/requirePortfolio are, keeping
+// every route's access control auditable from one place. Constant-time
+// compare, matching the password checks in internal/auth.
+func (s *Server) requireMicropubToken(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		auth := r.Header.Get("Authorization")
+		token, ok := strings.CutPrefix(auth, "Bearer ")
+		if !ok || token == "" {
+			micropubError(w, http.StatusUnauthorized, "unauthorized", "no access token supplied")
+			return
+		}
+		if subtle.ConstantTimeCompare([]byte(token), []byte(s.cfg.MicropubToken)) != 1 {
+			micropubError(w, http.StatusUnauthorized, "unauthorized", "invalid access token")
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // handleMicropubQuery serves GET /micropub — client introspection (?q=config,
 // ?q=source, ?q=category), used by clients to build their own posting UI and
 // to fetch a post back for editing.
 func (s *Server) handleMicropubQuery(w http.ResponseWriter, r *http.Request) {
-	if !s.requireMicropubToken(w, r) {
-		return
-	}
-
 	switch r.URL.Query().Get("q") {
 	case "config":
 		s.micropubConfig(w, r)
@@ -122,7 +123,25 @@ func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	writeJSON(w, http.StatusOK, postToMF2(post))
+	mf2 := postToMF2(post)
+
+	// ?q=source&properties[]=content&properties[]=name restricts the
+	// response to just those properties — a client fetching a post to edit
+	// one field doesn't need the rest. "properties" (no brackets) is also
+	// accepted, same tolerance as the category form field.
+	wanted := r.URL.Query()["properties[]"]
+	wanted = append(wanted, r.URL.Query()["properties"]...)
+	if len(wanted) > 0 {
+		filtered := make(map[string][]any, len(wanted))
+		for _, key := range wanted {
+			if v, ok := mf2.Properties[key]; ok {
+				filtered[key] = v
+			}
+		}
+		mf2.Properties = filtered
+	}
+
+	writeJSON(w, http.StatusOK, mf2)
 }
 
 // postFromMicropubURL resolves a Micropub "url" property (an absolute post
@@ -180,10 +199,6 @@ func postToMF2(post *db.Post) mf2Post {
 // handleMicropubAction serves POST /micropub — create, update, delete, and
 // undelete.
 func (s *Server) handleMicropubAction(w http.ResponseWriter, r *http.Request) {
-	if !s.requireMicropubToken(w, r) {
-		return
-	}
-
 	contentType := r.Header.Get("Content-Type")
 	if strings.HasPrefix(contentType, "application/json") {
 		s.micropubJSON(w, r)
@@ -236,11 +251,16 @@ func (s *Server) micropubForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Micropub form clients send category[] for a repeated field, but a
+	// single-category post is equally valid as a bare category — accept
+	// both rather than silently dropping whichever one a client picks.
+	categories := append(append([]string{}, r.Form["category"]...), r.Form["category[]"]...)
+
 	s.micropubCreate(w, r, micropubInput{
 		Content:    r.FormValue("content"),
 		Name:       r.FormValue("name"),
 		Slug:       r.FormValue("mp-slug"),
-		Categories: r.Form["category[]"],
+		Categories: categories,
 		Status:     r.FormValue("post-status"),
 	})
 }
@@ -310,7 +330,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, in micro
 	post := &db.Post{
 		Title:     in.Name,
 		BodyMD:    in.Content,
-		Tags:      strings.Join(in.Categories, ", "),
+		Tags:      joinTags(in.Categories),
 		Published: in.Status != "draft",
 	}
 
@@ -358,14 +378,20 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, body mf2
 		post.Title = v
 	}
 	if cats := mf2Strings(body.Replace, "category"); cats != nil {
-		post.Tags = strings.Join(cats, ", ")
+		post.Tags = joinTags(cats)
 	}
 	if v := mf2String(body.Replace, "post-status"); v != "" {
 		post.Published = v != "draft"
 	}
 	if cats := mf2Strings(body.Add, "category"); len(cats) > 0 {
 		merged := append(post.TagList(), cats...)
-		post.Tags = strings.Join(merged, ", ")
+		post.Tags = joinTags(merged)
+	}
+	if len(body.Delete) > 0 {
+		if err := applyMF2Delete(post, body.Delete); err != nil {
+			micropubError(w, http.StatusBadRequest, "invalid_request", err.Error())
+			return
+		}
 	}
 
 	if err := s.posts.Update(r.Context(), post); err != nil {
@@ -374,6 +400,44 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, body mf2
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// applyMF2Delete implements Micropub's "delete" update operation: either a
+// JSON array of property names to remove entirely, or an object mapping a
+// property name to the specific values to remove from it. "category" is the
+// only property this app can meaningfully delete from — anything else is
+// rejected outright (400) rather than silently accepted and ignored, which
+// would tell a client its request succeeded when nothing actually changed.
+func applyMF2Delete(post *db.Post, raw json.RawMessage) error {
+	var names []string
+	if err := json.Unmarshal(raw, &names); err == nil {
+		for _, name := range names {
+			if name != "category" {
+				return fmt.Errorf("cannot delete unsupported property %q", name)
+			}
+		}
+		post.Tags = ""
+		return nil
+	}
+
+	var byValue map[string][]string
+	if err := json.Unmarshal(raw, &byValue); err == nil {
+		for name, remove := range byValue {
+			if name != "category" {
+				return fmt.Errorf("cannot delete unsupported property %q", name)
+			}
+			var remaining []string
+			for _, tag := range post.TagList() {
+				if !slices.Contains(remove, tag) {
+					remaining = append(remaining, tag)
+				}
+			}
+			post.Tags = joinTags(remaining)
+		}
+		return nil
+	}
+
+	return fmt.Errorf("delete must be an array of property names or an object of property to values")
 }
 
 // micropubSetPublished implements delete (unpublish) and undelete
@@ -458,6 +522,25 @@ func mf2Strings(props map[string][]any, key string) []string {
 		}
 	}
 	return out
+}
+
+// joinTags stores categories in the same comma-separated shape
+// db.Project.Tech already uses, so tags round-trip the same way everywhere in
+// the app and the admin form's plain-text tag input keeps working unchanged.
+// That format can't itself distinguish an embedded comma from a delimiter, so
+// each value is sanitized on the way in — a comma inside a category becomes a
+// space rather than silently splitting into two tags on the next read. Real
+// Micropub categories are short tag-words in practice, so this is a
+// deliberately light mitigation rather than switching the column to a
+// reversible encoding, which would also mean reworking that admin field.
+func joinTags(categories []string) string {
+	clean := make([]string, 0, len(categories))
+	for _, c := range categories {
+		if c = strings.Join(strings.Fields(strings.ReplaceAll(c, ",", " ")), " "); c != "" {
+			clean = append(clean, c)
+		}
+	}
+	return strings.Join(clean, ", ")
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

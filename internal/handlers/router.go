@@ -27,11 +27,12 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /healthz", s.handleHealth)
 	mux.Handle("GET /static/", static.Handler())
 
-	// Micropub has its own bearer-token auth (see micropub.go), a third
-	// scheme alongside the cookie-scoped admin/portfolio sessions above —
-	// registered bare here because requireAdmin/requirePortfolio don't apply.
-	mux.HandleFunc("GET /micropub", s.handleMicropubQuery)
-	mux.HandleFunc("POST /micropub", s.handleMicropubAction)
+	// Micropub uses its own bearer-token middleware (see micropub.go) rather
+	// than a cookie scope, wired the same way requireAdmin/requirePortfolio
+	// are below — every route's access control still reads from this file.
+	requireMicropubToken := s.requireMicropubToken
+	mux.Handle("GET /micropub", requireMicropubToken(http.HandlerFunc(s.handleMicropubQuery)))
+	mux.Handle("POST /micropub", requireMicropubToken(http.HandlerFunc(s.handleMicropubAction)))
 
 	// --- Sign in / out ----------------------------------------------------
 	mux.HandleFunc("GET /portfolio/login", s.handlePortfolioLoginForm)

@@ -22,7 +22,7 @@ templ AdminDashboard(p Page, posts []*db.Post, projects []*db.Project) {
 				<ul class="rowlist">
 					for _, post := range posts {
 						<li>
-							<a class="rowlist__title" href={ templ.SafeURL(editPostPath(post.ID)) }>{ post.Title }</a>
+							<a class="rowlist__title" href={ templ.SafeURL(editPostPath(post.ID)) }>{ DisplayTitle(post) }</a>
 							<span class={ "badge", statusClass(post.Published) }>{ statusOf(post.Published) }</span>
 							<span class="rowlist__meta">{ railDate(post.Date()) }</span>
 							<a class="rowlist__meta" href={ templ.SafeURL("/blog/" + post.Slug) }>View</a>

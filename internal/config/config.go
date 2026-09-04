@@ -24,6 +24,7 @@ type Config struct {
 	AdminPassword     string
 	PortfolioPassword string
 	SessionSecret     []byte
+	MicropubToken     string // bearer token for POST /micropub; see internal/handlers/micropub.go
 }
 
 // Development reports whether we're running locally. It gates the Secure flag
@@ -44,6 +45,7 @@ func Load() (*Config, error) {
 		AdminPassword:     os.Getenv("ADMIN_PASSWORD"),
 		PortfolioPassword: os.Getenv("PORTFOLIO_PASSWORD"),
 		SessionSecret:     []byte(os.Getenv("SESSION_SECRET")),
+		MicropubToken:     os.Getenv("MICROPUB_TOKEN"),
 	}
 
 	var missing []string
@@ -55,6 +57,9 @@ func Load() (*Config, error) {
 	}
 	if len(c.SessionSecret) < minSecretLen {
 		missing = append(missing, fmt.Sprintf("SESSION_SECRET (need >= %d chars, got %d)", minSecretLen, len(c.SessionSecret)))
+	}
+	if len(c.MicropubToken) < minSecretLen {
+		missing = append(missing, fmt.Sprintf("MICROPUB_TOKEN (need >= %d chars, got %d)", minSecretLen, len(c.MicropubToken)))
 	}
 	if len(missing) > 0 {
 		return nil, fmt.Errorf("invalid configuration: %s\n\nSet these in .env locally, or with `disco env:set` in production.", strings.Join(missing, ", "))

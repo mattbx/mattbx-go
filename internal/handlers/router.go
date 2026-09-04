@@ -27,6 +27,13 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /healthz", s.handleHealth)
 	mux.Handle("GET /static/", static.Handler())
 
+	// Micropub uses its own bearer-token middleware (see micropub.go) rather
+	// than a cookie scope, wired the same way requireAdmin/requirePortfolio
+	// are below — every route's access control still reads from this file.
+	requireMicropubToken := s.requireMicropubToken
+	mux.Handle("GET /micropub", requireMicropubToken(http.HandlerFunc(s.handleMicropubQuery)))
+	mux.Handle("POST /micropub", requireMicropubToken(http.HandlerFunc(s.handleMicropubAction)))
+
 	// --- Sign in / out ----------------------------------------------------
 	mux.HandleFunc("GET /portfolio/login", s.handlePortfolioLoginForm)
 	mux.HandleFunc("POST /portfolio/login", s.handlePortfolioLogin)
@@ -94,7 +101,7 @@ func (s *Server) securityHeaders(next http.Handler) http.Handler {
 }
 
 func isPrivatePath(path string) bool {
-	return path == "/admin" || path == "/portfolio" ||
+	return path == "/admin" || path == "/portfolio" || path == "/micropub" ||
 		hasPrefix(path, "/admin/") || hasPrefix(path, "/portfolio/")
 }
 

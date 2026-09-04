@@ -41,6 +41,9 @@ These will break the deploy if violated:
 - **Access control lives only in `internal/handlers/router.go`.** A route is
   either registered bare (public) or wrapped in `requireAdmin`/`requirePortfolio`.
   Handlers never re-check permissions, so there is one place to audit.
+  `/micropub` follows the same pattern with its own bearer-token middleware
+  (`requireMicropubToken` in `micropub.go`) instead of a cookie scope, since
+  it's a machine API for IndieWeb clients, not a browser session.
 - `Page.IsAdmin` is presentation only — it reveals drafts and edit links. It
   never grants access.
 - **Markdown is rendered and sanitized at save time**, stored in `body_html`.

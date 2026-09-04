@@ -25,12 +25,22 @@ func TestMigrateAppliesAndIsIdempotent(t *testing.T) {
 		t.Fatalf("first open: %v", err)
 	}
 
-	var version int
-	if err := sqlDB.QueryRow(`SELECT MAX(version) FROM schema_migrations`).Scan(&version); err != nil {
+	var version, count int
+	if err := sqlDB.QueryRow(`SELECT MAX(version), COUNT(*) FROM schema_migrations`).Scan(&version, &count); err != nil {
 		t.Fatalf("read version: %v", err)
 	}
-	if version != 1 {
-		t.Fatalf("schema version = %d, want 1", version)
+	// Not a fixed number: this asserts every embedded migration file was
+	// applied exactly once, not "there are exactly N migrations" — which
+	// would need editing every time a new migration is added.
+	files, err := loadMigrations()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != len(files) {
+		t.Fatalf("applied %d migrations, want %d (one per embedded file)", count, len(files))
+	}
+	if version != files[len(files)-1].version {
+		t.Fatalf("schema version = %d, want %d (the newest migration)", version, files[len(files)-1].version)
 	}
 
 	for _, table := range []string{"posts", "projects"} {
@@ -52,8 +62,8 @@ func TestMigrateAppliesAndIsIdempotent(t *testing.T) {
 	if err := again.QueryRow(`SELECT COUNT(*) FROM schema_migrations`).Scan(&applied); err != nil {
 		t.Fatal(err)
 	}
-	if applied != 1 {
-		t.Fatalf("schema_migrations has %d rows after two opens, want 1", applied)
+	if applied != count {
+		t.Fatalf("schema_migrations has %d rows after two opens, want %d (unchanged from the first open)", applied, count)
 	}
 }
 

@@ -125,3 +125,34 @@ func formTitle(isNew bool, current, fallback string) string {
 	}
 	return current
 }
+
+// DisplayTitle is what's shown wherever a post needs a title-shaped label.
+// Micropub notes are posted without one by convention (that's what makes them
+// notes rather than articles), so this falls back to a truncated snippet of
+// the body rather than showing an empty heading.
+func DisplayTitle(post *db.Post) string {
+	if post.Title != "" {
+		return post.Title
+	}
+	return snippet(post.BodyMD, 60)
+}
+
+// snippet collapses whitespace/newlines and truncates on a word boundary.
+//
+// max counts runes, not bytes: len() and a raw byte slice both operate on
+// UTF-8 bytes, so cutting at a byte index can land inside a multi-byte rune
+// (any non-ASCII text — accents, CJK, emoji) and produce invalid UTF-8.
+// []rune makes the cut land on a character boundary regardless of encoding.
+func snippet(source string, max int) string {
+	fields := strings.Fields(source)
+	joined := strings.Join(fields, " ")
+	runes := []rune(joined)
+	if len(runes) <= max {
+		return joined
+	}
+	cut := string(runes[:max])
+	if i := strings.LastIndex(cut, " "); i > 0 {
+		cut = cut[:i]
+	}
+	return cut + "…"
+}

@@ -32,7 +32,7 @@ templ postEntry(post *db.Post) {
 		</div>
 		<div>
 			<h2 class="entry__title">
-				<a href={ templ.SafeURL("/blog/" + post.Slug) }>{ post.Title }</a>
+				<a href={ templ.SafeURL("/blog/" + post.Slug) }>{ DisplayTitle(post) }</a>
 			</h2>
 			if post.Summary != "" {
 				<p class="entry__summary">{ post.Summary }</p>
@@ -55,6 +55,15 @@ templ BlogPost(p Page, post *db.Post) {
 					<span class="rail__key">Read</span>
 					<span class="rail__value">{ readingTime(post.BodyMD) }</span>
 				</span>
+				if len(post.TagList()) > 0 {
+					<div class="rail__rule"></div>
+					<span class="rail__key">Tags</span>
+					<span class="rail__tags">
+						for _, tag := range post.TagList() {
+							<span class="rail__tag">{ tag }</span>
+						}
+					</span>
+				}
 				if !post.Published {
 					<div class="rail__rule"></div>
 					<span class="badge badge--draft">draft</span>
@@ -66,7 +75,9 @@ templ BlogPost(p Page, post *db.Post) {
 			</aside>
 			<div>
 				<header class="page-head">
-					<h1 class="page-title">{ post.Title }</h1>
+					if post.Title != "" {
+						<h1 class="page-title">{ post.Title }</h1>
+					}
 					if post.Summary != "" {
 						<p class="page-lede">{ post.Summary }</p>
 					}

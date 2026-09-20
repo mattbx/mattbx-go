@@ -3,7 +3,7 @@
 <https://github.com/mattbx/mattbx-go>
 
 A personal blog and portfolio. One Go binary, SQLite on a volume, no build
-pipeline and no JavaScript.
+pipeline and a single small first-party script.
 
 - **`/`** and **`/blog`** — public writing, with an RSS feed at `/feed.xml`
 - **`/portfolio`** — password-gated work, shared selectively

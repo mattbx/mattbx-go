@@ -19,10 +19,12 @@ templ Layout(p Page) {
 			<meta property="og:url" content={ p.CanonicalURL() }/>
 			<link rel="canonical" href={ templ.SafeURL(p.CanonicalURL()) }/>
 			<link rel="alternate" type="application/rss+xml" title={ SiteName } href="/feed.xml"/>
+			<link rel="alternate" type="application/feed+json" title={ SiteName } href="/feed.json"/>
 			<link rel="micropub" href={ templ.SafeURL(p.BaseURL + "/micropub") }/>
 			<link rel="icon" href={ static.URL("favicon.svg") } type="image/svg+xml"/>
 			<link rel="stylesheet" href={ static.URL("main.css") }/>
 			<link rel="stylesheet" href={ static.URL("chroma.css") }/>
+			<script src={ static.URL("terminal.js") } defer></script>
 		</head>
 		<body>
 			<a class="skip-link" href="#main">Skip to content</a>
@@ -33,7 +35,8 @@ templ Layout(p Page) {
 				<div class="shell masthead__inner">
 					<a class="wordmark" href="/">{ SiteMark }</a>
 					<nav class="nav" aria-label="Primary">
-						<a href="/blog" { current(p.Nav == "blog")... }>Blog</a>
+						<a href="/blog" { current(p.Nav == "blog")... }>Posts</a>
+						<a href="/about" { current(p.Nav == "about")... }>About</a>
 						<a href="/portfolio" class="is-locked" { current(p.Nav == "portfolio")... }>Portfolio</a>
 					</nav>
 				</div>
@@ -44,9 +47,13 @@ templ Layout(p Page) {
 			<footer class="colophon shell">
 				<span>© { p.Year() } { SiteName }</span>
 				<span>
-					<a href="/feed.xml">RSS</a>
+					<a href="/feed.xml">Atom feed</a>
 					{ " · " }
-					Go, templ, SQLite. Self-hosted.
+					<a href="/feed.json">JSON feed</a>
+					{ " · " }
+					<a href="https://micropub.spec.indieweb.org/">Miropub enabled</a>
+					
+
 				</span>
 			</footer>
 		</body>

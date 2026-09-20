@@ -1,4 +1,4 @@
-// Package static embeds and serves the site's CSS.
+// Package static embeds and serves the site's CSS and JavaScript.
 //
 // Assets ship inside the binary, so there is nothing to copy into the
 // container and no external requests at runtime.
@@ -13,7 +13,7 @@ import (
 	"sync"
 )
 
-//go:embed *.css *.svg
+//go:embed *.css *.js *.svg
 var files embed.FS
 
 // FS exposes the embedded assets.
@@ -25,24 +25,23 @@ var (
 )
 
 // buildHashes fingerprints each asset once at startup so URLs can be cached
-// forever and still change the moment the file does.
+// forever and still change the moment the file does. It walks subdirectories
+// so assets embedded later (fonts, media) are fingerprinted under their
+// relative path, e.g. "fonts/x.woff2".
 func buildHashes() {
 	hashes = make(map[string]string)
-	entries, err := files.ReadDir(".")
-	if err != nil {
-		return
-	}
-	for _, e := range entries {
-		if e.IsDir() {
-			continue
+	_ = fs.WalkDir(files, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
 		}
-		b, err := files.ReadFile(e.Name())
+		b, err := files.ReadFile(path)
 		if err != nil {
-			continue
+			return nil
 		}
 		sum := sha256.Sum256(b)
-		hashes[e.Name()] = hex.EncodeToString(sum[:])[:12]
-	}
+		hashes[path] = hex.EncodeToString(sum[:])[:12]
+		return nil
+	})
 }
 
 // URL returns the cache-busting path for an embedded asset, e.g.

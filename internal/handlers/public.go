@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"html"
 	"net/http"
 	"time"
 
@@ -21,6 +23,11 @@ func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
 	}
 	p := s.page(r, "", ui.SiteTagline, "")
 	s.render(w, r, http.StatusOK, ui.Home(p, posts))
+}
+
+func (s *Server) handleAbout(w http.ResponseWriter, r *http.Request) {
+	p := s.page(r, "About", "A little about "+ui.SiteName+".", "about")
+	s.render(w, r, http.StatusOK, ui.About(p))
 }
 
 func (s *Server) handleBlogIndex(w http.ResponseWriter, r *http.Request) {
@@ -140,5 +147,88 @@ func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 	if err := enc.Encode(feed); err != nil {
 		// Headers are already sent, so log and stop rather than write a 500.
 		s.log.Error("encode feed", "err", err)
+	}
+}
+
+// --- JSON Feed -------------------------------------------------------------
+
+type jsonFeed struct {
+	Version     string          `json:"version"`
+	Title       string          `json:"title"`
+	HomePageURL string          `json:"home_page_url"`
+	FeedURL     string          `json:"feed_url"`
+	Description string          `json:"description"`
+	Language    string          `json:"language"`
+	Authors     []jsonFeedAuthor `json:"authors"`
+	Items       []jsonFeedItem  `json:"items"`
+}
+
+type jsonFeedAuthor struct {
+	Name string `json:"name"`
+}
+
+type jsonFeedItem struct {
+	ID            string   `json:"id"`
+	URL           string   `json:"url"`
+	Title         string   `json:"title,omitempty"`
+	Summary       string   `json:"summary,omitempty"`
+	ContentHTML   string   `json:"content_html"`
+	DatePublished string   `json:"date_published"`
+	DateModified  string   `json:"date_modified"`
+	Tags          []string `json:"tags,omitempty"`
+}
+
+// feedContentHTML prepares stored HTML for syndication. Chroma escapes string
+// literals as entities (&#34; etc.); feed readers are happier with the decoded
+// characters. Go's JSON encoder also escapes < as \u003c by default — callers
+// should set SetEscapeHTML(false) when writing the feed.
+func feedContentHTML(s string) string {
+	return html.UnescapeString(s)
+}
+
+// handleJSONFeed serves published posts only — drafts never appear in the feed,
+// regardless of who is signed in.
+func (s *Server) handleJSONFeed(w http.ResponseWriter, r *http.Request) {
+	posts, err := s.posts.List(r.Context(), false, 50)
+	if err != nil {
+		s.serverError(w, r, err)
+		return
+	}
+
+	feed := jsonFeed{
+		Version:     "https://jsonfeed.org/version/1.1",
+		Title:       ui.SiteName,
+		HomePageURL: s.cfg.BaseURL + "/",
+		FeedURL:     s.cfg.BaseURL + "/feed.json",
+		Description: ui.SiteTagline,
+		Language:    "en",
+		Authors:     []jsonFeedAuthor{{Name: ui.SiteName}},
+	}
+
+	for _, post := range posts {
+		url := s.cfg.BaseURL + post.PermalinkPath()
+		item := jsonFeedItem{
+			ID:            url,
+			URL:           url,
+			ContentHTML:   feedContentHTML(post.BodyHTML),
+			DatePublished: post.Date().UTC().Format(time.RFC3339),
+			DateModified:  post.UpdatedAt.UTC().Format(time.RFC3339),
+			Tags:          post.TagList(),
+		}
+		if post.Title != "" {
+			item.Title = post.Title
+		}
+		if post.Summary != "" {
+			item.Summary = post.Summary
+		}
+		feed.Items = append(feed.Items, item)
+	}
+
+	w.Header().Set("Content-Type", "application/feed+json; charset=utf-8")
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(feed); err != nil {
+		s.log.Error("encode json feed", "err", err)
 	}
 }

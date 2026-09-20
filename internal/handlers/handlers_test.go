@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -212,6 +213,9 @@ func TestDraftsAreInvisibleToThePublic(t *testing.T) {
 	if w := get(h, "/feed.xml"); strings.Contains(w.Body.String(), "Secret Draft") {
 		t.Error("a draft appeared in the RSS feed")
 	}
+	if w := get(h, "/feed.json"); strings.Contains(w.Body.String(), "Secret Draft") {
+		t.Error("a draft appeared in the JSON feed")
+	}
 
 	// The author can see their own drafts.
 	admin := signIn(t, h, "/admin/login", adminPassword)
@@ -371,6 +375,28 @@ func TestUnknownPathRendersStyled404(t *testing.T) {
 	}
 }
 
+// The CSP is skipped in development (Air injects an inline script), so this is
+// the only place the production policy is exercised.
+func TestProductionCSPAllowsOnlyFirstPartyScripts(t *testing.T) {
+	s, h, _, _ := newTestServer(t)
+	s.cfg.Env = "production"
+
+	w := get(h, "/")
+	csp := w.Header().Get("Content-Security-Policy")
+
+	for _, want := range []string{"script-src 'self'", "style-src 'self'"} {
+		if !strings.Contains(csp, want) {
+			t.Errorf("CSP %q missing %q", csp, want)
+		}
+	}
+	if strings.Contains(csp, "unsafe-inline") || strings.Contains(csp, "unsafe-eval") {
+		t.Errorf("CSP %q must not allow inline or eval script", csp)
+	}
+	if !strings.Contains(w.Body.String(), "/static/terminal.js") {
+		t.Error("layout does not load the first-party script")
+	}
+}
+
 func TestFeedIsValidRSS(t *testing.T) {
 	_, h, posts, _ := newTestServer(t)
 
@@ -394,5 +420,61 @@ func TestFeedIsValidRSS(t *testing.T) {
 		if !strings.Contains(body, want) {
 			t.Errorf("feed missing %q\n%s", want, body)
 		}
+	}
+}
+
+func TestFeedIsValidJSON(t *testing.T) {
+	_, h, posts, _ := newTestServer(t)
+
+	err := posts.Create(context.Background(), &db.Post{
+		Slug: "first", Title: "First", Summary: "Hello",
+		BodyHTML: "<p>Hello</p>", Published: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	w := get(h, "/feed.json")
+
+	if ct := w.Header().Get("Content-Type"); !strings.Contains(ct, "feed+json") {
+		t.Errorf("Content-Type = %q, want application/feed+json", ct)
+	}
+
+	var feed jsonFeed
+	if err := json.Unmarshal(w.Body.Bytes(), &feed); err != nil {
+		t.Fatalf("decode feed: %v\n%s", err, w.Body.String())
+	}
+	if feed.Version != "https://jsonfeed.org/version/1.1" {
+		t.Errorf("version = %q", feed.Version)
+	}
+	if feed.HomePageURL != "https://example.test/" {
+		t.Errorf("home_page_url = %q", feed.HomePageURL)
+	}
+	if feed.FeedURL != "https://example.test/feed.json" {
+		t.Errorf("feed_url = %q", feed.FeedURL)
+	}
+	if len(feed.Items) != 1 {
+		t.Fatalf("items = %d, want 1", len(feed.Items))
+	}
+	item := feed.Items[0]
+	if item.URL != "https://example.test/blog/first" {
+		t.Errorf("item url = %q", item.URL)
+	}
+	if item.Title != "First" {
+		t.Errorf("item title = %q", item.Title)
+	}
+	if item.ContentHTML != "<p>Hello</p>" {
+		t.Errorf("item content_html = %q", item.ContentHTML)
+	}
+	if strings.Contains(w.Body.String(), `\u003c`) {
+		t.Errorf("feed should not unicode-escape HTML tags\n%s", w.Body.String())
+	}
+}
+
+func TestFeedContentHTMLUnescapesEntities(t *testing.T) {
+	got := feedContentHTML(`<span class="s">&#34;hello&#34;</span>`)
+	want := `<span class="s">"hello"</span>`
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
 	}
 }

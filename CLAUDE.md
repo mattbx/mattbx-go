@@ -1,7 +1,7 @@
 # mattbx-go
 
 Personal blog + portfolio. One Go binary, templ for UI, SQLite on a volume,
-self-hosted on [Disco](https://disco.cloud/docs/). No JS, no CSS framework,
+self-hosted on [Disco](https://disco.cloud/docs/). One small first-party script, no CSS framework,
 no ORM.
 
 Repo: <https://github.com/mattbx/mattbx-go>
@@ -54,6 +54,11 @@ These will break the deploy if violated:
 - CSS is hand-written and token-driven (`internal/ui/static/main.css`). Define
   colors on bare `:root`; the dark block only swaps values. Do not add Tailwind
   or any build step.
+- **The CSP is `script-src 'self'` in production only.** Inline scripts and
+  inline `style=""` attributes are blocked there, and development sends no CSP
+  (Air injects an inline reload script), so an effect can work locally and fail
+  in prod. Check UI changes against a build running with `ENV=production`.
+  Setting styles from JS through `el.style` is fine; only markup is restricted.
 - Site name, role, and tagline are constants at the top of `internal/ui/page.go`.
 
 ## Gotchas found the hard way

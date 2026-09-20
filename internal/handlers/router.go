@@ -20,9 +20,11 @@ func (s *Server) Routes() http.Handler {
 
 	// --- Public -----------------------------------------------------------
 	mux.HandleFunc("GET /{$}", s.handleHome)
+	mux.HandleFunc("GET /about", s.handleAbout)
 	mux.HandleFunc("GET /blog", s.handleBlogIndex)
 	mux.HandleFunc("GET /blog/{slug}", s.handleBlogPost)
 	mux.HandleFunc("GET /feed.xml", s.handleFeed)
+	mux.HandleFunc("GET /feed.json", s.handleJSONFeed)
 	mux.HandleFunc("GET /robots.txt", s.handleRobots)
 	mux.HandleFunc("GET /healthz", s.handleHealth)
 	mux.Handle("GET /static/", static.Handler())
@@ -80,12 +82,14 @@ func (s *Server) securityHeaders(next http.Handler) http.Handler {
 		h.Set("Referrer-Policy", "strict-origin-when-cross-origin")
 		h.Set("X-Frame-Options", "DENY")
 
-		// The site ships no JavaScript and loads nothing cross-origin, so the
+		// The site ships one first-party script and loads nothing cross-origin, so the
 		// policy can be strict. It is skipped in development because Air's
-		// proxy injects an inline live-reload script that 'none' would block.
+		// proxy injects an inline live-reload script that this policy would block.
+		// Inline scripts and style attributes are therefore blocked in production
+		// only, so check UI changes against a build running with ENV=production.
 		if !s.cfg.Development() {
 			h.Set("Content-Security-Policy",
-				"default-src 'self'; script-src 'none'; style-src 'self'; "+
+				"default-src 'self'; script-src 'self'; style-src 'self'; "+
 					"img-src 'self' data:; base-uri 'none'; form-action 'self'; "+
 					"frame-ancestors 'none'")
 		}

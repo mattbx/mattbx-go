@@ -14,8 +14,8 @@ import (
 const (
 	SiteName    = "Matt Barron"
 	SiteMark    = "mattbx"
-	SiteRole    = "Software engineer"
-	SiteTagline = "Writing about the software I build, and the work I've shipped."
+	SiteRole    = "Designer & Developer"
+	SiteTagline = "Designing and building digital products."
 )
 
 // Page carries the per-request context the shell needs. Handlers build one and
@@ -26,7 +26,7 @@ type Page struct {
 	// Description populates the meta description and og:description.
 	Description string
 
-	// Nav marks the active navigation item: "blog", "portfolio", or "".
+	// Nav marks the active navigation item: "blog", "about", "portfolio", or "".
 	Nav string
 
 	// IsAdmin controls whether the admin toolbar renders. It is presentation

@@ -2,8 +2,8 @@
 
 <https://github.com/mattbx/mattbx-go>
 
-A personal blog and portfolio. One Go binary, SQLite on a volume, no build
-pipeline and a single small first-party script.
+A personal blog and portfolio. One Go binary, SQLite on a volume, no JS
+build pipeline and a single small first-party script.
 
 - **`/`** and **`/blog`** — public writing, with an RSS feed at `/feed.xml`
 - **`/portfolio`** — password-gated work, shared selectively
@@ -33,8 +33,9 @@ That's the whole setup. On first run it creates `.env` from `.env.example` and
 generates a `SESSION_SECRET`, then serves <http://localhost:8383> with hot
 reload — edit a `.templ`, `.go`, or `.css` file and the browser refreshes.
 
-`templ` and `air` are pinned as Go tool dependencies in `go.mod`, so nothing
-needs installing globally. Go 1.24+ is required for that.
+`templ` and `air` are pinned as Go tool dependencies in `go.mod`, so they
+need no global install (Go 1.24+ is required for that). Styling uses the
+Tailwind standalone CLI, installed with `brew install tailwindcss`.
 
 Set your own passwords in `.env` before doing anything real:
 

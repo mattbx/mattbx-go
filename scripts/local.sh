@@ -4,8 +4,8 @@
 #   ./scripts/local.sh   →   http://localhost:8383
 #
 # templ and air are pinned as Go tool dependencies in go.mod, so this works on a
-# clean machine with the Go toolchain and the Tailwind standalone CLI
-# (brew install tailwindcss).
+# clean machine with the Go toolchain and the Tailwind standalone CLI at
+# TAILWIND_VERSION (same pin as ARG TAILWIND_VERSION in the Dockerfile).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -43,8 +43,20 @@ mkdir -p data tmp
 go mod download
 go tool templ generate
 
+# Same pin as ARG TAILWIND_VERSION in the Dockerfile.
+TAILWIND_VERSION=4.3.3
+
 if ! command -v tailwindcss >/dev/null 2>&1; then
-  echo "==> tailwindcss not found. Install the standalone CLI: brew install tailwindcss" >&2
+  echo "==> tailwindcss not found. Install the standalone CLI v${TAILWIND_VERSION} from" >&2
+  echo "    https://github.com/tailwindlabs/tailwindcss/releases/tag/v${TAILWIND_VERSION}" >&2
+  exit 1
+fi
+
+# `tailwindcss --help` prints the version in its header (see Dockerfile).
+tw_help="$(tailwindcss --help)"
+if ! grep -qE "v${TAILWIND_VERSION}([^0-9]|$)" <<<"$tw_help"; then
+  echo "==> tailwindcss must be v${TAILWIND_VERSION} (same pin as the Docker build)." >&2
+  echo "    https://github.com/tailwindlabs/tailwindcss/releases/tag/v${TAILWIND_VERSION}" >&2
   exit 1
 fi
 

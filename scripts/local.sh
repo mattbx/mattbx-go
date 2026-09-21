@@ -4,7 +4,8 @@
 #   ./scripts/local.sh   →   http://localhost:8383
 #
 # templ and air are pinned as Go tool dependencies in go.mod, so this works on a
-# clean machine with nothing but the Go toolchain installed.
+# clean machine with the Go toolchain and the Tailwind standalone CLI
+# (brew install tailwindcss).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -42,5 +43,20 @@ mkdir -p data tmp
 go mod download
 go tool templ generate
 
+if ! command -v tailwindcss >/dev/null 2>&1; then
+  echo "==> tailwindcss not found. Install the standalone CLI: brew install tailwindcss" >&2
+  exit 1
+fi
+
+tw_in=internal/ui/tailwind/input.css
+tw_out=internal/ui/static/tailwind.css
+tailwindcss -i "$tw_in" -o "$tw_out"
+
+# --watch=always: Tailwind v4 exits watch mode when stdin closes, which is the
+# case for a background job. Air notices the rewritten CSS and reloads.
+tailwindcss -i "$tw_in" -o "$tw_out" --watch=always &
+tailwind_pid=$!
+trap 'kill "$tailwind_pid" 2>/dev/null || true' EXIT
+
 echo "==> http://localhost:8383  (app on :8080, air proxy adds live reload)"
-exec go tool air -c .air.toml
+go tool air -c .air.toml

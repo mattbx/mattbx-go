@@ -1,8 +1,8 @@
 # mattbx-go
 
 Personal blog + portfolio. One Go binary, templ for UI, SQLite on a volume,
-self-hosted on [Disco](https://disco.cloud/docs/). One small first-party script, no CSS framework,
-no ORM.
+self-hosted on [Disco](https://disco.cloud/docs/). One small first-party script, Tailwind v4 via the standalone
+CLI (no Node), no ORM.
 
 Repo: <https://github.com/mattbx/mattbx-go>
 
@@ -17,7 +17,10 @@ Repo: <https://github.com/mattbx/mattbx-go>
   syntax-highlighting themes.
 
 `templ` and `air` are pinned as tool dependencies in `go.mod`. Always invoke
-them as `go tool templ` / `go tool air` — they are not installed globally.
+them as `go tool templ` / `go tool air` — they are not installed globally. The
+exception is Tailwind's standalone CLI (`brew install tailwindcss`); its output,
+`internal/ui/static/tailwind.css`, is gitignored and built by
+`scripts/local.sh` and the Dockerfile.
 
 ## Hard constraints
 
@@ -51,9 +54,12 @@ These will break the deploy if violated:
   at request time.
 - `*_templ.go` is gitignored. Generated fresh by `scripts/local.sh` and the
   Dockerfile.
-- CSS is hand-written and token-driven (`internal/ui/static/main.css`). Define
-  colors on bare `:root`; the dark block only swaps values. Do not add Tailwind
-  or any build step.
+- Legacy CSS is hand-written and token-driven (`internal/ui/static/main.css`). Define
+  colors on bare `:root`; the dark block only swaps values. Tailwind v4
+  (`internal/ui/tailwind/input.css`) is being adopted page by page. Preflight
+  is deliberately not imported yet, and because `main.css` is unlayered it
+  beats every utility, so delete a template's legacy rules when it moves to
+  utilities.
 - **The CSP is `script-src 'self'` in production only.** Inline scripts and
   inline `style=""` attributes are blocked there, and development sends no CSP
   (Air injects an inline reload script), so an effect can work locally and fail

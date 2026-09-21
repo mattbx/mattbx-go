@@ -10,11 +10,31 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Tailwind standalone CLI (no Node). The musl build is required on Alpine, and
+# it is dynamically linked against the C++ runtime, which golang:alpine lacks
+# (build stage only; the runtime image is unaffected). Keep TAILWIND_VERSION in
+# step with the version used locally (`tailwindcss --help` prints it). Fetched
+# before the source copy so it stays cached.
+RUN apk add --no-cache libstdc++ libgcc
+ARG TAILWIND_VERSION=4.3.3
+ARG TARGETARCH
+RUN case "$TARGETARCH" in \
+      amd64) tw=tailwindcss-linux-x64-musl ;; \
+      arm64) tw=tailwindcss-linux-arm64-musl ;; \
+      *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
+    esac \
+ && wget -qO /usr/local/bin/tailwindcss \
+      "https://github.com/tailwindlabs/tailwindcss/releases/download/v${TAILWIND_VERSION}/${tw}" \
+ && chmod +x /usr/local/bin/tailwindcss
+
 COPY . .
 
 # .dockerignore excludes *_templ.go, so the generated code is always built
 # fresh from the .templ sources rather than trusting whatever was committed.
 RUN go tool templ generate
+
+# Compiled before `go build` because the stylesheet is embedded in the binary.
+RUN tailwindcss -i internal/ui/tailwind/input.css -o internal/ui/static/tailwind.css --minify
 
 # CGO_ENABLED=0 works because the SQLite driver (modernc.org/sqlite) is pure
 # Go. That keeps the runtime image free of a libc/toolchain dependency.

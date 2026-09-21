@@ -1,0 +1,25 @@
+package ui
+
+templ About(p Page) {
+	@Layout(p) {
+		<div class="page-head">
+			<p class="eyebrow">{ SiteRole }</p>
+			<h1 class="page-title">About</h1>
+			<p class="page-lede">{ SiteTagline }</p>
+		</div>
+		<div class="prose">
+			<p>
+				I am { SiteName }. I design and build digital products — from interfaces
+				to the systems behind them.
+			</p>
+			<p>
+				This site is where I publish writing and share selected work. For posts,
+				head to the{ " " }<a href="/blog">blog</a>.
+			</p>
+			<p>
+				The portfolio is password-gated. If you need access,{ " " }
+				<a href="/portfolio">ask me</a>{ " " }and I will send one.
+			</p>
+		</div>
+	}
+}

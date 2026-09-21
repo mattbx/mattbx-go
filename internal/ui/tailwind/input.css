@@ -1,0 +1,25 @@
+/* Tailwind v4 entry point. Compiled by the standalone CLI into
+   internal/ui/static/tailwind.css (gitignored; see scripts/local.sh and the
+   Dockerfile).
+
+   Two deliberate choices while pages are migrated from main.css:
+
+   1. Preflight is not imported. Tailwind's reset would restyle the admin,
+      blog and prose pages that still rely on main.css. Import it here once
+      nothing depends on the old base styles.
+
+   2. Automatic source detection is off (source(none)). Only templates and
+      the site script are scanned, so words in docs never become utilities.
+
+   Cascade note: main.css is unlayered, and unlayered rules beat every layered
+   rule regardless of specificity. A utility therefore cannot override a
+   main.css rule on the same property. When a template moves to utilities,
+   delete the legacy class rules it used. */
+
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+
+@source "../*.templ";
+@source "../static/terminal.js";

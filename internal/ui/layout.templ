@@ -34,7 +34,7 @@ templ Layout(p Page) {
 			}
 			<header class="masthead">
 				<div class="shell masthead__inner">
-					<a class="wordmark" href="/">{ SiteMark }</a>
+					<a class="wordmark font-mono uppercase text-ink" href="/">{ SiteMark }</a>
 					<nav class="nav" aria-label="Primary">
 						<a href="/blog" { current(p.Nav == "blog")... }>Posts</a>
 						<a href="/about" { current(p.Nav == "about")... }>About</a>
@@ -45,7 +45,7 @@ templ Layout(p Page) {
 			<main class="main shell" id="main">
 				{ children... }
 			</main>
-			<footer class="colophon shell">
+			<footer class="colophon shell uppercase">
 				<span>© { p.Year() } { SiteName }</span>
 				<span>
 					<a href="/feed.xml">Atom feed</a>

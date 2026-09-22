@@ -1,4 +1,4 @@
-// Package static embeds and serves the site's CSS and JavaScript.
+// Package static embeds and serves the site's CSS, JavaScript and fonts.
 //
 // Assets ship inside the binary, so there is nothing to copy into the
 // container and no external requests at runtime.
@@ -9,12 +9,20 @@ import (
 	"embed"
 	"encoding/hex"
 	"io/fs"
+	"mime"
 	"net/http"
+	"strings"
 	"sync"
 )
 
-//go:embed *.css *.js *.svg
+//go:embed *.css *.js *.svg fonts
 var files embed.FS
+
+func init() {
+	// Go's built-in table has no woff2 entry and the runtime image ships no
+	// mime.types, so register it explicitly.
+	_ = mime.AddExtensionType(".woff2", "font/woff2")
+}
 
 // FS exposes the embedded assets.
 func FS() fs.FS { return files }
@@ -61,9 +69,14 @@ func URL(name string) string {
 func Handler() http.Handler {
 	fileServer := http.FileServer(http.FS(files))
 	return http.StripPrefix("/static/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Query().Get("v") != "" {
+		switch {
+		case r.URL.Query().Get("v") != "":
 			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-		} else {
+		case strings.HasPrefix(r.URL.Path, "fonts/"):
+			// Fonts are referenced from CSS, so there is no fingerprint to bust
+			// the cache. They change rarely; a week keeps them warm.
+			w.Header().Set("Cache-Control", "public, max-age=604800")
+		default:
 			w.Header().Set("Cache-Control", "public, max-age=300")
 		}
 		fileServer.ServeHTTP(w, r)

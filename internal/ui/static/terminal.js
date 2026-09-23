@@ -80,7 +80,7 @@ function tickScreenTime() {
 // --- Letter scramble --------------------------------------------------------
 // Cycles random glyphs across a short label, settling left-to-right into the
 // real text on hover/focus. Scoped to mono, uppercase, short labels via
-// [data-scramble]. Defaults match the Jean Dawson teardown (step 4, 15fps).
+// [data-scramble]. Defaults: step 4, ~15fps.
 
 const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+/<>";
 

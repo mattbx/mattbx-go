@@ -38,9 +38,14 @@ RUN tailwindcss -i internal/ui/tailwind/input.css -o internal/ui/static/tailwind
 
 # CGO_ENABLED=0 works because the SQLite driver (modernc.org/sqlite) is pure
 # Go. That keeps the runtime image free of a libc/toolchain dependency.
+#
+# The build date is computed here, inside the build step, rather than passed
+# in from outside: .dockerignore excludes .git, so there's no commit to read,
+# and this way nothing needs configuring in Disco (or wherever else this ever
+# gets built) for the date to be correct.
 RUN CGO_ENABLED=0 GOOS=linux go build \
         -trimpath \
-        -ldflags="-s -w" \
+        -ldflags="-s -w -X github.com/mattbx/mattbx-go/internal/build.Date=$(date -u +%Y-%m-%d)" \
         -o /out/server ./cmd/web
 
 # --- Runtime ----------------------------------------------------------------

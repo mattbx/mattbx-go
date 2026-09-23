@@ -27,25 +27,25 @@ templ Layout(p Page) {
 			<link rel="stylesheet" href={ static.URL("tailwind.css") }/>
 			<script src={ static.URL("terminal.js") } defer></script>
 		</head>
-		<body>
+		<body class="flex flex-col justify-between min-h-screen">
 			<a class="skip-link" href="#main">Skip to content</a>
 			if p.IsAdmin {
 				@adminBar()
 			}
-			<header class="masthead">
-				<div class="shell masthead__inner">
-					<a class="wordmark font-mono uppercase text-ink" href="/">{ SiteMark }</a>
-					<nav class="nav" aria-label="Primary">
+			<header class="py-4 fixed top-0 left-0 right-0 z-10">
+				<div class="max-w-screen-4xl w-full mx-auto px-6 flex items-center justify-between">
+					<a class="wordmark font-ui text-lg! tracking-tight font-semibold text-ink" href="/">{ SiteMark }</a>
+					<nav class="nav font-mono uppercase text-lg! text-ink space-x-4 flex" aria-label="Primary">
 						<a href="/blog" { current(p.Nav == "blog")... }>Posts</a>
 						<a href="/about" { current(p.Nav == "about")... }>About</a>
 						<a href="/portfolio" class="is-locked" { current(p.Nav == "portfolio")... }>Portfolio</a>
 					</nav>
 				</div>
 			</header>
-			<main class="main shell" id="main">
+			<main class="main pt-24 flex flex-col h-full max-w-screen-4xl w-full mx-auto px-6" id="main">
 				{ children... }
 			</main>
-			<footer class="colophon shell uppercase">
+			<footer class="colophon font-mono pt-6 px-6 uppercase text-lg!">
 				<span>© { p.Year() } { SiteName }</span>
 				<span>
 					<a href="/feed.xml">Atom feed</a>
@@ -53,9 +53,10 @@ templ Layout(p Page) {
 					<a href="/feed.json">JSON feed</a>
 					{ " · " }
 					<a href="https://micropub.spec.indieweb.org/">Miropub enabled</a>
-					
-
 				</span>
+				<div class="w-full mt-4 pt-4 border-t border-muted/25">
+					@MetaRow()
+				</div>
 			</footer>
 		</body>
 	</html>

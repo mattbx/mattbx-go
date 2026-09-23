@@ -5,14 +5,14 @@ import "github.com/mattbx/mattbx-go/internal/db"
 templ Home(p Page, posts []*db.Post) {
 	@Layout(p) {
 		<div class="page-head">
-			<p class="eyebrow">{ SiteRole }</p>
-			<h1 class="page-title">{ SiteName }</h1>
-			<p class="page-lede">{ SiteTagline }</p>
+			// <p class="eyebrow">{ SiteRole }</p>
+			<h1 class="font-mono font-normal text-2xl! mbe-0 tracking-wide uppercase text-ink">{ SiteName }</h1>
+			<p class="page-lede font-mono uppercase tracking-wide text-ink text-2xl! max-w-2/3 leading-tight">{ SiteTagline }</p>
 		</div>
 		if len(posts) > 0 {
 			<section aria-labelledby="recent">
 				<div class="section-head">
-					<h2 id="recent">Recent posts</h2>
+					<h2 class="font-ui text-lg! font-semibold tracking-tight text-ink" id="recent">Recent posts</h2>
 					<a href="/blog">All posts →</a>
 				</div>
 				<ol class="ledger">
@@ -24,7 +24,7 @@ templ Home(p Page, posts []*db.Post) {
 		}
 		<section aria-labelledby="work">
 			<div class="section-head">
-				<h2 id="work">Selected work</h2>
+				<h2 class="font-ui text-lg! font-semibold tracking-tight text-ink" id="work">Selected work</h2>
 			</div>
 			<p class="page-lede">
 				The portfolio is shared privately. If you need access,

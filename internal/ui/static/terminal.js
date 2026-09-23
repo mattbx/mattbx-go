@@ -71,6 +71,10 @@ function scramble(el, { step = 4, fps = 15 } = {}) {
   const target = el.querySelector("[data-label]") || el;
   const original = target.dataset.scrambleText || target.textContent;
   target.dataset.scrambleText = original;
+  // Keep the control's accessible name stable while glyphs cycle.
+  if (!el.getAttribute("aria-label")) {
+    el.setAttribute("aria-label", original.trim());
+  }
   const len = original.length;
   let frame = 0;
   clearInterval(target._scrambleTimer);

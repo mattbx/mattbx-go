@@ -66,11 +66,15 @@ internal/auth/      session cookies, middleware, rate limiting
 internal/markdown/  Markdown -> sanitized HTML
 internal/handlers/  routes; all access control lives in router.go
 internal/ui/        templ components + embedded CSS
+  classes.go        shared Tailwind utility clusters (interim)
+  crt.templ         CRT overlay component (opt-in, not wired yet)
+  tailwind/         v4 entry (`input.css`) + self-hosted font faces
 ```
 
-Generated `*_templ.go` files are **not** committed. `scripts/local.sh` and the
-Dockerfile both run `templ generate`, so a fresh clone needs one of those (or a
-bare `go tool templ generate`) before `go build` will work.
+Generated `*_templ.go` files and `internal/ui/static/tailwind.css` are **not**
+committed. `scripts/local.sh` and the Dockerfile both run `templ generate` and
+the Tailwind CLI, so a fresh clone needs one of those (or a bare
+`go tool templ generate` plus `tailwindcss -i …`) before `go build` will work.
 
 To restyle syntax highlighting, change the theme names in
 `internal/ui/static/gen/main.go` and run `go generate ./internal/ui/...`.

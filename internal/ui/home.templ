@@ -6,14 +6,13 @@ templ Home(p Page, posts []*db.Post) {
 	@Layout(p) {
 		<div class={ classPageHead }>
 			// <p class={ classEyebrow }>{ SiteRole }</p>
-			<h1 class="font-mono font-normal text-2xl mbe-0 tracking-wide uppercase text-ink">{ SiteName }</h1>
-			<p class="mt-2 font-mono uppercase tracking-wide text-ink text-2xl max-w-2/3 leading-tight">{ SiteTagline }</p>
+			<h1 class="font-mono font-normal text-display mbe-0 tracking-wide uppercase text-fg">{ SiteName }</h1>
+			<p class="mt-2 font-mono uppercase tracking-wide text-fg text-display max-w-2/3 leading-tight">{ SiteTagline }</p>
 		</div>
 		if len(posts) > 0 {
 			<section aria-labelledby="recent">
 				<div class={ classSectionHead }>
-					<h2 class={ classPageTitleSm } id="recent">Recent posts</h2>
-					<a href="/blog">All posts →</a>
+					<h2 class={ classPageTitleSm } id="recent">Latest</h2>
 				</div>
 				<ol class="ledger">
 					for _, post := range posts {
@@ -22,15 +21,5 @@ templ Home(p Page, posts []*db.Post) {
 				</ol>
 			</section>
 		}
-		<section aria-labelledby="work">
-			<div class={ classSectionHead }>
-				<h2 class={ classPageTitleSm } id="work">Selected work</h2>
-			</div>
-			<p class={ classPageLede }>
-				The portfolio is shared privately. If you need access,
-				ask me for the password and it will open at
-				{ " " }<a href="/portfolio">/portfolio</a>.
-			</p>
-		</section>
 	}
 }

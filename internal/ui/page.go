@@ -12,7 +12,7 @@ import (
 
 // Edit these in one place to rebrand the site.
 const (
-	SiteName    = "Hi there, I'm Matt."
+	SiteName    = "Hi there, I'm Matt!"
 	SiteMark    = "Mbx"
 	SiteRole    = "UI/UX Engineer"
 	SiteTagline = "I design and build digital products and things with my dog Pippi, in Sydney AU.*Available for work opportunities and tacos.*This is mostly placeholder content for now until I have something to say."
@@ -101,9 +101,9 @@ func errorCode(status int) string { return fmt.Sprintf("Error %d", status) }
 
 func statusClass(published bool) string {
 	if published {
-		return "text-accent"
+		return "text-fg"
 	}
-	return "text-warning"
+	return "text-dim"
 }
 
 func orderLabel(n int) string { return strconv.Itoa(n) }

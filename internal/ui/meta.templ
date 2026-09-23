@@ -15,7 +15,7 @@ import (
 // somewhere without the colophon's uppercase mono context around it.
 templ metaField(label string) {
 	<span class="inline-flex items-baseline gap-2 font-mono text-xs uppercase tracking-wide whitespace-nowrap">
-		<span class="text-muted">{ label }:</span>
+		<span class="text-dim">{ label }:</span>
 		{ children... }
 	</span>
 }
@@ -25,7 +25,7 @@ templ metaField(label string) {
 // value rendered at request time.
 templ MetaClock() {
 	@metaField("Local Time") {
-		<time class="text-ink" data-meta="clock" data-tz={ SiteTimeZone } datetime={ localDateTime(time.Now()) }>
+		<time class="text-fg" data-meta="clock" data-tz={ SiteTimeZone } datetime={ localDateTime(time.Now()) }>
 			{ localTime(time.Now()) }
 		</time>
 	}
@@ -34,7 +34,7 @@ templ MetaClock() {
 // MetaCoordinates is a rounded, city-level lon/lat, not a precise location.
 templ MetaCoordinates() {
 	@metaField("Coordinates") {
-		<span class="text-ink">{ SiteCoordinates }</span>
+		<span class="text-fg">{ SiteCoordinates }</span>
 	}
 }
 
@@ -42,7 +42,7 @@ templ MetaCoordinates() {
 // stays correct across daylight saving changes.
 templ MetaOffsets() {
 	@metaField("Global") {
-		<span class="text-ink">{ strings.Join(offsetLabels(), ", ") }</span>
+		<span class="text-fg">{ strings.Join(offsetLabels(), ", ") }</span>
 	}
 }
 
@@ -51,7 +51,7 @@ templ MetaOffsets() {
 // value.
 templ MetaUptime() {
 	@metaField("Uptime") {
-		<span class="text-ink" data-meta="uptime" data-started={ processStartUnix() }>
+		<span class="text-fg" data-meta="uptime" data-started={ processStartUnix() }>
 			{ uptimeLabel() }
 		</span>
 	}
@@ -61,7 +61,7 @@ templ MetaUptime() {
 // Dockerfile's ldflags.
 templ MetaBuild() {
 	@metaField("Build") {
-		<span class="text-ink">{ buildLabel() }</span>
+		<span class="text-fg">{ buildLabel() }</span>
 	}
 }
 
@@ -69,7 +69,7 @@ templ MetaBuild() {
 // server data at all — terminal.js starts it at 00:00 on load.
 templ MetaScreenTime() {
 	@metaField("Screen Time") {
-		<span class="text-ink" data-meta="screentime">00:00</span>
+		<span class="text-fg" data-meta="screentime">00:00</span>
 	}
 }
 

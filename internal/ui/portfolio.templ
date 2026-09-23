@@ -24,23 +24,20 @@ templ PortfolioIndex(p Page, projects []*db.Project) {
 }
 
 templ projectEntry(project *db.Project) {
-	<li class="entry">
+	<li class="entry hover-fill">
 		<div class="entry__meta">
 			if project.Role != "" {
 				<span>{ project.Role }</span>
 			}
 			<time datetime={ machineDate(project.CreatedAt) }>{ project.CreatedAt.Format("2006") }</time>
 			if !project.Published {
-				<span class={ classBadge, "text-warning" }>draft</span>
+				<span class={ classBadge, "text-dim" }>draft</span>
 			}
 		</div>
 		<div>
 			<h2 class="entry__title">
 				<a href={ templ.SafeURL("/portfolio/" + project.Slug) }>{ project.Title }</a>
 			</h2>
-			if project.Summary != "" {
-				<p class="entry__summary">{ project.Summary }</p>
-			}
 			if hasLinks(project) {
 				<div class="entry__links">
 					if project.LinkURL != "" {

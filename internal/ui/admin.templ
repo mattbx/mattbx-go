@@ -87,7 +87,7 @@ templ PostForm(p Page, v PostFormView) {
 			<label class="field">
 				<span class="field__label">
 					Summary
-					<span class="field__hint">One or two sentences, shown on the index and in search results.</span>
+					<span class="field__hint">One or two sentences for the post page lede, meta description, and feeds.</span>
 				</span>
 				<textarea class="textarea textarea--short" name="summary">{ v.Post.Summary }</textarea>
 			</label>
@@ -139,7 +139,7 @@ templ ProjectForm(p Page, v ProjectFormView) {
 			<label class="field">
 				<span class="field__label">
 					Summary
-					<span class="field__hint">The one-line pitch shown on the portfolio index.</span>
+					<span class="field__hint">One-line pitch for the project page lede, meta description, and feeds.</span>
 				</span>
 				<textarea class="textarea textarea--short" name="summary">{ v.Project.Summary }</textarea>
 			</label>

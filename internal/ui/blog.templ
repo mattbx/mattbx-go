@@ -20,24 +20,21 @@ templ BlogIndex(p Page, posts []*db.Post) {
 	}
 }
 
-// postEntry is one row of the ledger: date in the margin, title and summary
-// in the column beside it.
+// postEntry is one row of the ledger: date in the margin, title beside it.
 templ postEntry(post *db.Post) {
-	<li class="entry">
+	<li class="entry hover-fill">
 		<div class="entry__meta">
 			<time datetime={ machineDate(post.Date()) }>{ railDate(post.Date()) }</time>
 			if !post.Published {
-				<span class={ classBadge, "text-warning" }>draft</span>
+				<span class={ classBadge, "text-dim" }>draft</span>
 			}
 		</div>
 		<div>
 			<h2 class="entry__title">
 				<a href={ templ.SafeURL("/blog/" + post.Slug) }>{ DisplayTitle(post) }</a>
 			</h2>
-			if post.Summary != "" {
-				<p class="entry__summary">{ post.Summary }</p>
-			}
 		</div>
+		<div class="entry__date">{ post.Date().Year() }</div>
 	</li>
 }
 
@@ -66,7 +63,7 @@ templ BlogPost(p Page, post *db.Post) {
 				}
 				if !post.Published {
 					<div class="rail__rule"></div>
-					<span class={ classBadge, "text-warning" }>draft</span>
+					<span class={ classBadge, "text-dim" }>draft</span>
 				}
 				if p.IsAdmin {
 					<div class="rail__rule"></div>

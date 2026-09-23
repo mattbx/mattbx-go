@@ -54,21 +54,25 @@ These will break the deploy if violated:
   at request time.
 - `*_templ.go` is gitignored. Generated fresh by `scripts/local.sh` and the
   Dockerfile.
-- **Colors and font stacks live in `internal/ui/tailwind/input.css`.** Define semantic
-  `--color-*` tokens and `--font-ui` / `--font-prose` / `--font-mono` in `@theme static`
-  (light defaults); dark overrides the plain CSS color variables under `@layer theme`
-  inside `@media (prefers-color-scheme: dark)` — Tailwind rejects nesting `@theme`
-  inside `@media`. `main.css` consumes those variables with `var()` and must not
-  redefine colors or font stacks on `:root`. Spacing, type scale, and layout tokens
-  still live in `main.css` until they migrate. Tailwind v4 is adopted page by page
-  (hybrid: shell/page chrome are utilities; prose, leaf/rail, ledger structure,
-  forms, and gate stay in `main.css` until type/layout lock). Preflight is
-  deliberately not imported yet, and because `main.css` is unlayered it beats
-  every utility, so delete a template's legacy rules when it moves to utilities —
-  do not paper over conflicts with `!`. Shared utility clusters used from Go live
-  in `internal/ui/classes.go` and **must** stay listed in Tailwind's `@source`
-  or they never emit. Opt-in motion (`.hover-underline`, entry fill, scramble,
-  CRT overlay) is class/`data-*` gated, not global.
+- **Colors, type scale, and font stacks live in `internal/ui/tailwind/input.css`.**
+  Role-based color tokens in `@theme static` (light defaults); dark overrides
+  under `@layer theme` inside `@media (prefers-color-scheme: dark)`:
+  `--color-page` (bg), `--color-fg` (terminal foreground — graphite light /
+  phosphor dark), `--color-dim` (meta/secondary), `--color-line` (hairlines),
+  `--color-surface` (sunk panels), `--color-danger` (destructive admin only).
+  CRT source values (`--crt-void`, `--crt-phosphor`, …) stay outside `@theme`
+  for the overlay layer. Fluid type tokens (`--text-hero` … `--text-micro`)
+  and gutters (`--spacing-gutter`, `--spacing-col`) use clamp/vw on a 1280
+  design frame. Font stacks: `--font-ui` / `--font-prose` / `--font-mono`.
+  `main.css` consumes with `var()` and must not redefine these on `:root`.
+  Tailwind v4 is hybrid: shell/page chrome are utilities; prose, leaf/rail,
+  ledger, forms, and gate stay in `main.css` until further migration. Preflight
+  is not imported yet; unlayered `main.css` beats utilities — delete legacy
+  rules when moving to utilities, never paper over with `!`. Shared utility
+  clusters in `internal/ui/classes.go` must stay in `@source`. Opt-in motion:
+  `.hover-underline`, `.hover-fill` (fg/page invert), `data-scramble`,
+  `data-magnetic`, CRT overlay — class/`data-*` gated, not global. Motion
+  timings: `--ease-wipe`, `--ease-underline`, `--dur-fast`, `--dur-fill`.
 - **`chroma.css` is syntax highlighting only.** Generated from Chroma's
   `github` / `github-dark` styles by `go generate ./internal/ui/...`. It is a
   separate palette from the site tokens; do not fold it into `@theme`. Code
@@ -101,9 +105,12 @@ These will break the deploy if violated:
 - `ADMIN_PASSWORD` and `PORTFOLIO_PASSWORD` must differ — startup refuses
   otherwise, so a portfolio visitor can never reach `/admin`.
 - **Global `a { color: … }` beats `text-*` utilities.** Unlayered link color
-  in `main.css` wins over Tailwind. Chrome that should stay muted (footer,
+  in `main.css` wins over Tailwind. Chrome that should stay dim (footer,
   admin bar) needs a matching unlayered hook, not only a utility class.
 - **Unknown or unsourced Tailwind classes fail silently.** A typo, a class
   only present in an unsourced Go string, or a theme token never defined in
   `@theme` produces no CSS and no build error — check the generated
   `tailwind.css` when something "doesn't apply."
+- **Scramble + magnetic share a label node.** Put visible text in
+  `[data-label]` inside `[data-magnetic]`; scramble targets that child so it
+  does not wipe the wrapper DOM when rewriting `textContent`.

@@ -68,13 +68,18 @@ internal/handlers/  routes; all access control lives in router.go
 internal/ui/        templ components + embedded CSS
   classes.go        shared Tailwind utility clusters (interim)
   crt.templ         CRT overlay component (opt-in, not wired yet)
-  tailwind/         v4 entry (`input.css`) + self-hosted font faces
+  static/           main.css, chroma.css, terminal.js (scramble + magnetic)
+  tailwind/         v4 entry (`input.css`): page/fg/dim/line colors, fluid type, fonts
 ```
 
 Generated `*_templ.go` files and `internal/ui/static/tailwind.css` are **not**
 committed. `scripts/local.sh` and the Dockerfile both run `templ generate` and
 the Tailwind CLI, so a fresh clone needs one of those (or a bare
 `go tool templ generate` plus `tailwindcss -i …`) before `go build` will work.
+
+Design tokens (colors, type scale, gutters, motion timings) live only in
+`internal/ui/tailwind/input.css` — see `CLAUDE.md` for the role names and the
+hybrid utilities/`main.css` split.
 
 To restyle syntax highlighting, change the theme names in
 `internal/ui/static/gen/main.go` and run `go generate ./internal/ui/...`.

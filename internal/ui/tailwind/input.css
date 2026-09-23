@@ -35,13 +35,19 @@
    dark overrides the plain CSS variables under @layer theme (Tailwind
    rejects nesting @theme inside @media).
 
-   Font stacks live here and only here. main.css consumes them with var() for
-   remaining hand-written rules (body, prose, forms). --font-mono is the
-   terminal face swap point: install a face locally and put its name first —
-   it only renders for you, and nothing licensed reaches the repo.
+   Role-based palette (theme-agnostic names):
+     page    — background (light: mono off-white; dark: near-black void)
+     fg      — terminal foreground for text/rules (light: graphite; dark: phosphor)
+     dim     — secondary text (meta, rail, hints, footer)
+     line    — hairlines/borders (derived from fg)
+     surface — sunk panels (code, inputs, admin bar)
+     danger  — destructive admin only
 
-   CRT primitives (void, panel, phosphor, phosphor-dim) stay addressable by
-   name for the effect layer; dark semantic tokens reference them with var(). */
+   Font stacks live here and only here. --font-mono is the terminal face swap
+   point: install a face locally and put its name first — it only renders for
+   you, and nothing licensed reaches the repo.
+
+   Motion tuning tokens keep hover/wipe timing consistent site-wide. */
 @theme static {
   --font-mono: "Thermal", "Victor Mono", "JetBrains Mono", ui-monospace, "SF Mono",
     SFMono-Regular, "Cascadia Mono", Menlo, Consolas, monospace;
@@ -51,34 +57,64 @@
     Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
 
   /* Site max width for the shell (header/main). */
-  --container-site: 80rem;
+  --container-site: 96rem;
 
-  /* Semantic site palette — light defaults. */
-  --color-paper: #fcfcfa;
-  --color-ink: #1a2024;
-  --color-muted: #6b7378;
-  --color-accent: #27886c;
-  --color-warning: #ff8b00;
-  --color-danger: #a33a2b;
+  /* Fluid type (1280 design frame). Rem floor keeps zoom working. */
+  --text-hero: clamp(2.5rem, calc(124 / 1280 * 100vw), 4.625rem);
+  --text-hero--line-height: 0.9;
+  --text-hero--letter-spacing: -0.05em;
+
+  --text-display: clamp(1.25rem, calc(32 / 1280 * 100vw), 3rem);
+  --text-display--line-height: 1;
+
+  --text-nav: clamp(1.125rem, calc(20 / 1280 * 100vw), 1.875rem);
+  --text-nav--line-height: 1;
+
+  --text-title: clamp(1rem, calc(16 / 1280 * 100vw), 1.5rem);
+  --text-title--line-height: 1;
+
+  --text-meta: clamp(0.875rem, calc(14 / 1280 * 100vw), 1.3125rem);
+  --text-meta--line-height: 1.15;
+
+  --text-micro: clamp(0.75rem, calc(11 / 1280 * 100vw), 1.03rem);
+  --text-micro--line-height: 1.1;
+
+  /* Fixed gutters; content scales inside them. */
+  --spacing-gutter: 1.5rem;
+  --spacing-col: calc(20 / 1280 * 100vw);
+
+  /* Role-based semantic palette — light defaults. */
+  --color-page: #fcfcfa;
+  --color-fg: #1a2024;
+  --color-dim: #6b7378;
+  --color-line: color-mix(in srgb, #1a2024 18%, transparent);
   --color-surface: #f3f3ef;
+  --color-danger: #a33a2b;
 
-  /* CRT primitives — source values for dark overrides and future effects. */
-  --color-void: #010305;
-  --color-panel: #03070a;
-  --color-phosphor: #3ee9b7;
-  --color-phosphor-dim: #27886c;
+  /* Motion tuning. */
+  --ease-wipe: cubic-bezier(0.4, 0, 0, 1);
+  --ease-underline: cubic-bezier(0.65, 0.05, 0.36, 1);
+  --dur-fast: 200ms;
+  --dur-fill: 300ms;
+}
+
+/* CRT source values — not theme utilities. Dark page/fg reference these. */
+:root {
+  --crt-void: #010305;
+  --crt-panel: #03070a;
+  --crt-phosphor: #3ee9b7;
+  --crt-phosphor-dim: #27886c;
 }
 
 @media (prefers-color-scheme: dark) {
   @layer theme {
     :root {
-      --color-paper: var(--color-void);
-      --color-ink: var(--color-phosphor);
-      --color-muted: #9aa39c;
-      --color-accent: var(--color-phosphor-dim);
-      --color-warning: #d69a4e;
+      --color-page: var(--crt-void);
+      --color-fg: var(--crt-phosphor);
+      --color-dim: var(--crt-phosphor-dim);
+      --color-line: color-mix(in srgb, var(--crt-phosphor) 22%, transparent);
+      --color-surface: var(--crt-panel);
       --color-danger: #e08272;
-      --color-surface: var(--color-panel);
     }
   }
 }

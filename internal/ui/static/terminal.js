@@ -77,45 +77,40 @@ function tickScreenTime() {
   setInterval(update, 1000);
 }
 
-// --- Letter scramble (teardown idea #3) -------------------------------------
+// --- Letter scramble --------------------------------------------------------
 // Cycles random glyphs across a short label, settling left-to-right into the
-// real text on hover/focus. Deliberately scoped to mono, uppercase, short
-// labels (nav + footer links, via [data-scramble]) — in a proportional font
-// each cycling glyph has a different width, so the label jitters sideways as
-// it settles; monospace keeps every frame the same width, which is what
-// makes it read as a terminal effect instead of a bug.
+// real text on hover/focus. Scoped to mono, uppercase, short labels via
+// [data-scramble]. Defaults match the Jean Dawson teardown (step 4, 15fps).
 
-const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+/<>";
 
-// scramble(el) settles el's own text left-to-right, one character at a time.
-// step controls how many frames each character spends cycling before it
-// locks in; fps controls how fast those frames advance.
-function scramble(el, { step = 2, fps = 24 } = {}) {
-  const original = el.dataset.scrambleText || el.textContent;
-  el.dataset.scrambleText = original;
+function scramble(el, { step = 4, fps = 15 } = {}) {
+  // Prefer an inner [data-label] so magnetic wrappers keep their DOM.
+  const target = el.querySelector("[data-label]") || el;
+  const original = target.dataset.scrambleText || target.textContent;
+  target.dataset.scrambleText = original;
   const len = original.length;
-  const totalFrames = len * step;
   let frame = 0;
-  clearInterval(el._scrambleTimer);
-  el._scrambleTimer = setInterval(() => {
+  clearInterval(target._scrambleTimer);
+  target._scrambleTimer = setInterval(() => {
     frame++;
-    const settled = Math.floor(frame / step);
+    // Chars left of (frame - step) are final — matches shuffle-letters shape.
+    const settled = frame - step;
     let out = "";
     for (let i = 0; i < len; i++) {
       const ch = original[i];
-      out += i < settled || ch === " " ? ch : SCRAMBLE_CHARS[(Math.random() * SCRAMBLE_CHARS.length) | 0];
+      out += ch === " " || i < settled
+        ? ch
+        : SCRAMBLE_CHARS[(Math.random() * SCRAMBLE_CHARS.length) | 0];
     }
-    el.textContent = out;
-    if (frame >= totalFrames) {
-      el.textContent = original;
-      clearInterval(el._scrambleTimer);
+    target.textContent = out;
+    if (settled >= len) {
+      target.textContent = original;
+      clearInterval(target._scrambleTimer);
     }
   }, 1000 / fps);
 }
 
-// initScramble wires pointerenter/focus on every [data-scramble] element.
-// Left alone entirely under prefers-reduced-motion, per the site convention
-// of guarding motion at the point it's triggered, not just in CSS.
 function initScramble() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const els = document.querySelectorAll("[data-scramble]");
@@ -127,7 +122,63 @@ function initScramble() {
   });
 }
 
+// --- Magnetic pull ----------------------------------------------------------
+// rAF lerp toward (pointer - centre) * force. Loop stops when settled.
+// Rect measured on pointerenter so scroll never makes the centre stale.
+// Gated to fine pointers; reduced-motion skips entirely.
+
+function bindMagnetic(el) {
+  const ease = Number(el.dataset.ease) || 0.2;
+  const force = Number(el.dataset.force) || 0.25;
+  const labelStrength = 1 / 3;
+  const inner = el.querySelector("[data-label]");
+  const areaSelector = el.dataset.area;
+  const area = (areaSelector && document.querySelector(areaSelector)) || el;
+
+  let x = 0, y = 0, tx = 0, ty = 0, cx = 0, cy = 0, raf = 0;
+
+  const tick = () => {
+    x += (tx - x) * ease;
+    y += (ty - y) * ease;
+    el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    if (inner) {
+      inner.style.transform = `translate3d(${-x * labelStrength}px, ${-y * labelStrength}px, 0)`;
+    }
+    raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.05
+      ? requestAnimationFrame(tick)
+      : 0;
+  };
+  const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+
+  const measure = () => {
+    const r = el.getBoundingClientRect();
+    cx = r.left + r.width / 2 - x;
+    cy = r.top + r.height / 2 - y;
+  };
+  const move = (e) => {
+    tx = (e.clientX - cx) * force;
+    ty = (e.clientY - cy) * force;
+    kick();
+  };
+  const reset = () => { tx = 0; ty = 0; kick(); };
+
+  area.addEventListener("pointerenter", measure);
+  area.addEventListener("pointermove", move);
+  area.addEventListener("pointerleave", reset);
+  // Focus parity for keyboard users — mild nudge toward centre is a no-op;
+  // measure still keeps hover ready after tabbing.
+  el.addEventListener("focus", measure);
+  el.addEventListener("blur", reset);
+}
+
+function initMagnetic() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+  document.querySelectorAll("[data-magnetic]").forEach(bindMagnetic);
+}
+
 tickClocks();
 tickUptime();
 tickScreenTime();
 initScramble();
+initMagnetic();

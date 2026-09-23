@@ -49,8 +49,8 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  background: var(--color-paper);
-  color: var(--color-ink);
+  background: var(--color-page);
+  color: var(--color-fg);
   font-family: var(--font-prose);
   font-size: var(--step-0);
   line-height: 1.65;
@@ -59,11 +59,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-a { color: var(--color-accent); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
-a:hover { color: color-mix(in srgb, var(--color-accent) 80%, var(--color-ink)); }
+a { color: var(--color-fg); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+a:hover { opacity: 0.8; }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-fg);
   outline-offset: 3px;
   border-radius: 2px;
 }
@@ -72,34 +72,30 @@ img { max-width: 100%; height: auto; }
 
 /* Wordmark # prefix and nav chrome that need pseudo-elements / aria selectors.
    Layout, color, and type for these live as utilities on the elements. */
-.wordmark::before { content: "# "; color: var(--color-ink); }
-.wordmark:hover { color: var(--color-accent); }
+.wordmark::before { content: "# "; color: var(--color-fg); }
 
 .nav a {
-  color: var(--color-ink);
+  color: var(--color-fg);
   padding-block: var(--space-half);
 }
 .nav .is-locked::after {
   content: "*";
-  color: var(--color-warning);
+  color: var(--color-dim);
   margin-left: 0.35em;
   font-weight: 700;
 }
 
-/* Global `a` sets accent; these restore muted chrome links. */
-footer a { color: var(--color-muted); }
-footer a:hover { color: var(--color-accent); }
+/* Global `a` is fg; restore dim chrome links in footer/admin. */
+footer a { color: var(--color-dim); }
+footer a:hover { color: var(--color-fg); opacity: 1; }
 
-.admin-bar a { color: var(--color-muted); text-decoration: none; }
-.admin-bar a:hover { color: var(--color-accent); }
+.admin-bar a { color: var(--color-dim); text-decoration: none; }
+.admin-bar a:hover { color: var(--color-fg); opacity: 1; }
 
-/* --- Hover: underline in/out (teardown idea #5) ---------------------------
-   Draws in from the left on enter, leaves to the right on exit — the
-   direction reversal (not just a fade) is what reads as intentional rather
-   than a generic transition. An element marked aria-current="page" draws in
-   and stays, doubling as a "you are here" indicator (see .nav a below).
-   Uses ::before, not ::after, so it doesn't collide with .is-locked's
-   trailing "*" marker on the same nav link. */
+/* --- Hover: underline in/out ---------------------------------------------
+   Draws in from the left on enter, leaves to the right on exit. An element
+   marked aria-current="page" draws in and stays. Uses ::before so it does
+   not collide with .is-locked's trailing "*" on the same nav link. */
 .hover-underline {
   position: relative;
   text-decoration: none;
@@ -114,27 +110,64 @@ footer a:hover { color: var(--color-accent); }
   background: currentColor;
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
+  transition: transform var(--dur-fast) var(--ease-underline);
 }
 .hover-underline:is(:hover, :focus-visible)::before,
 .hover-underline[aria-current="page"]::before {
   transform: scaleX(1);
   transform-origin: left center;
 }
+
+/* --- Hover: row fill + inverse text (reusable) ---------------------------
+   Opt in with class="hover-fill". A solid fg bar wipes in; every descendant
+   flips to page (brutal invert — phosphor slab in dark). Keyframes, not
+   transitions: a fast pass still plays the full fill. Override with
+   --hover-fill-bg / --hover-fill-fg if needed. */
+.hover-fill {
+  --hover-fill-bg: var(--color-fg);
+  --hover-fill-fg: var(--color-page);
+  position: relative;
+  z-index: 0;
+}
+.hover-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--hover-fill-bg);
+  transform-origin: left center;
+  animation: hover-fill-out var(--dur-fill) var(--ease-wipe) forwards;
+}
+.hover-fill:is(:hover, :focus-within)::before {
+  animation: hover-fill-in var(--dur-fill) var(--ease-wipe) forwards;
+}
+@keyframes hover-fill-in {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes hover-fill-out {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+.hover-fill:is(:hover, :focus-within),
+.hover-fill:is(:hover, :focus-within) :where(*) {
+  color: var(--hover-fill-fg);
+}
+
+[data-magnetic] {
+  display: inline-block;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hover-underline::before { transition: none; }
-  .entry::before,
-  .entry__meta {
+  /* Instant solid invert — still bold, no motion. */
+  .hover-fill::before {
     animation: none;
+    transform: scaleX(0);
   }
-  .entry::before { opacity: 0; }
-  .entry:hover::before,
-  .entry:focus-within::before {
-    opacity: 0.1;
-  }
-  .entry:hover .entry__meta,
-  .entry:focus-within .entry__meta {
-    color: var(--color-ink);
+  .hover-fill:is(:hover, :focus-within)::before {
+    transform: scaleX(1);
   }
 }
 
@@ -151,7 +184,7 @@ footer a:hover { color: var(--color-accent); }
   font-family: var(--font-mono);
   font-size: var(--step--1);
   line-height: 1.5;
-  color: var(--color-muted);
+  color: var(--color-fg);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -166,19 +199,19 @@ footer a:hover { color: var(--color-accent); }
   font-size: 0.6875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--color-fg);
   opacity: 0.75;
 }
-.rail__value { color: var(--color-muted); }
+.rail__value { color: var(--color-dim); }
 .rail__rule {
   height: 1px;
   width: 100%;
-  background: color-mix(in srgb, var(--color-muted) 25%, transparent);
+  background: var(--color-line);
   margin-block: var(--space-2);
 }
 
 .rail__tags { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); }
-.rail__tag { color: var(--color-muted); }
+.rail__tag { color: var(--color-dim); }
 .rail__tag::before { content: "#"; opacity: 0.6; }
 
 /* Below the rail's breakpoint the metadata becomes a single inline line. */
@@ -199,105 +232,60 @@ footer a:hover { color: var(--color-accent); }
 
 /* --- Index: the ledger --------------------------------------------------- */
 
-.ledger { list-style: none; margin: 0; padding: 0; }
+.ledger { display: flex; flex-direction: column; list-style: none; margin: 0; padding: 0; }
 
 .entry {
-  position: relative;
-  z-index: 0;
-  display: grid;
-  grid-template-columns: var(--rail) minmax(0, 1fr);
-  gap: var(--space-5);
-  padding-block: var(--space-4);
-  padding-inline: var(--space-3);
-  margin-inline: calc(var(--space-3) * -1);
-  border-top: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent);
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--spacing-col);
 }
-.entry:last-child { border-bottom: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent); }
 
-/* Row fill (teardown idea #4): a background bar wipes in behind the whole
-   row on hover, sweeping out again on exit. Built with keyframe animations
-   rather than a transition — a transition reverses instantly mid-flight on
-   a fast pointer pass and barely reads, while swapping which keyframe is
-   assigned always plays a full, uninterrupted sweep in either direction.
-   The trade-off: the -out keyframe plays once on load too, which we're
-   framing as an on-brand "warming up" flicker rather than fighting it. */
-.entry::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--color-accent);
-  opacity: 0.1;
-  transform-origin: left center;
-  animation: entry-fill-out 260ms ease forwards;
-}
-.entry:hover::before,
-.entry:focus-within::before {
-  animation: entry-fill-in 260ms ease forwards;
-}
-@keyframes entry-fill-in {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
-@keyframes entry-fill-out {
-  from { transform: scaleX(1); }
-  to { transform: scaleX(0); }
+.entry a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--color-fg);
 }
 
 .entry__meta {
+  flex: 0 0 24vw;
+  max-width: 24vw;
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   font-family: var(--font-mono);
-  font-size: var(--step--1);
-  color: var(--color-muted);
-  padding-top: 0.35em;
-  display: flex;
-  flex-direction: column;
-  /* Hug the content: without this a badge stretches across the whole rail. */
-  align-items: flex-start;
-  gap: var(--space-1);
-  animation: entry-text-out 260ms ease forwards;
-}
-.entry:hover .entry__meta,
-.entry:focus-within .entry__meta {
-  animation: entry-text-in 260ms ease forwards;
-}
-@keyframes entry-text-in {
-  from { color: var(--color-muted); }
-  to { color: var(--color-ink); }
-}
-@keyframes entry-text-out {
-  from { color: var(--color-ink); }
-  to { color: var(--color-muted); }
+  text-transform: uppercase;
+  font-weight: normal;
 }
 
 .entry__title {
-  font-family: var(--font-ui);
-  font-size: var(--step-1);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  line-height: 1.3;
-  margin: 0;
-}
-.entry__title a { color: var(--color-ink); text-decoration: none; }
-
-.entry__summary {
-  margin: var(--space-2) 0 0;
-  color: var(--color-muted);
-  line-height: 1.6;
-}
-
-.entry__links {
-  margin-top: var(--space-3);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-block: 0;
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
   font-family: var(--font-mono);
-  font-size: var(--step--1);
+  text-transform: uppercase;
+  font-weight: normal;
+}
+
+.entry__date {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  font-weight: normal;
 }
 
 @media (max-width: 46rem) {
-  .entry { grid-template-columns: 1fr; gap: var(--space-2); }
-  .entry__meta { flex-direction: row; flex-wrap: wrap; gap: var(--space-3); padding-top: 0; }
+  .entry { flex-wrap: wrap; gap: var(--space-2); }
+  .entry__meta { flex: 1 1 100%; max-width: none; }
+  .entry__title { flex: 1 1 auto; }
+  .entry__date { flex: 0 0 auto; }
 }
+
 
 /* --- Prose --------------------------------------------------------------- */
 
@@ -311,7 +299,7 @@ footer a:hover { color: var(--color-accent); }
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.15;
-  color: var(--color-ink);
+  color: var(--color-fg);
   margin-top: var(--space-6);
 }
 
@@ -320,13 +308,13 @@ footer a:hover { color: var(--color-accent); }
   font-weight: 600;
   letter-spacing: -0.015em;
   line-height: 1.25;
-  color: var(--color-ink);
+  color: var(--color-fg);
   margin-top: var(--space-6);
   margin-bottom: var(--space-3);
 }
 .prose h2 { font-size: var(--step-2); }
 .prose h3 { font-size: var(--step-1); }
-.prose h4 { font-size: var(--step-0); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted); }
+.prose h4 { font-size: var(--step-0); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-dim); }
 
 .prose p { margin-block: 0; }
 .prose ul, .prose ol { padding-left: 1.25em; margin-block: 0; }
@@ -335,14 +323,14 @@ footer a:hover { color: var(--color-accent); }
 .prose blockquote {
   margin-inline: 0;
   padding-left: var(--space-4);
-  border-left: 2px solid var(--color-accent);
-  color: var(--color-muted);
+  border-left: 2px solid var(--color-fg);
+  color: var(--color-dim);
   font-style: italic;
 }
 
 .prose hr {
   border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent);
+  border-top: 1px solid var(--color-line);
   margin-block: var(--space-6);
 }
 
@@ -359,7 +347,7 @@ footer a:hover { color: var(--color-accent); }
   font-size: var(--step--1);
   line-height: 1.55;
   padding: var(--space-4);
-  border: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent);
+  border: 1px solid var(--color-line);
   border-radius: var(--radius);
   overflow-x: auto;
 }
@@ -380,13 +368,13 @@ footer a:hover { color: var(--color-accent); }
 .prose th, .prose td {
   text-align: left;
   padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent);
+  border-bottom: 1px solid var(--color-line);
 }
-.prose th { font-weight: 600; color: var(--color-muted); text-transform: uppercase; font-size: 0.6875rem; letter-spacing: 0.06em; }
+.prose th { font-weight: 600; color: var(--color-dim); text-transform: uppercase; font-size: 0.6875rem; letter-spacing: 0.06em; }
 
 .prose img {
   border-radius: var(--radius);
-  border: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent);
+  border: 1px solid var(--color-line);
 }
 
 /* Heading anchors, revealed on hover — quiet until wanted. */
@@ -395,7 +383,7 @@ footer a:hover { color: var(--color-accent); }
   content: "#";
   position: absolute;
   left: -1em;
-  color: var(--color-accent);
+  color: var(--color-fg);
   font-family: var(--font-mono);
   font-weight: 400;
 }
@@ -410,7 +398,7 @@ footer a:hover { color: var(--color-accent); }
   font-size: var(--step--1);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--color-dim);
   margin-bottom: var(--space-2);
 }
 
@@ -418,7 +406,7 @@ footer a:hover { color: var(--color-accent); }
   display: block;
   font-family: var(--font-ui);
   font-size: var(--step--1);
-  color: var(--color-muted);
+  color: var(--color-dim);
   text-transform: none;
   letter-spacing: 0;
   margin-top: var(--space-1);
@@ -428,16 +416,16 @@ footer a:hover { color: var(--color-accent); }
   width: 100%;
   font-family: var(--font-ui);
   font-size: var(--step-0);
-  color: var(--color-ink);
-  background: var(--color-paper);
-  border: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent);
+  color: var(--color-fg);
+  background: var(--color-page);
+  border: 1px solid var(--color-line);
   border-radius: var(--radius);
   padding: var(--space-2) var(--space-3);
   min-height: var(--tap);
 }
 .input:focus, .textarea:focus, .select:focus {
-  border-color: var(--color-accent);
-  outline: 2px solid var(--color-accent);
+  border-color: var(--color-fg);
+  outline: 2px solid var(--color-fg);
   outline-offset: -1px;
 }
 
@@ -458,7 +446,7 @@ footer a:hover { color: var(--color-accent); }
   font-size: var(--step-0);
   min-height: var(--tap);
 }
-.checkline input { width: 1.1em; height: 1.1em; accent-color: var(--color-accent); }
+.checkline input { width: 1.1em; height: 1.1em; accent-color: var(--color-fg); }
 
 .field-row {
   display: grid;
@@ -480,28 +468,28 @@ footer a:hover { color: var(--color-accent); }
   padding: var(--space-3) var(--space-4);
   min-height: var(--tap);
   border-radius: var(--radius);
-  border: 1px solid var(--color-ink);
-  background: var(--color-ink);
-  color: var(--color-paper);
+  border: 1px solid var(--color-fg);
+  background: var(--color-fg);
+  color: var(--color-page);
   cursor: pointer;
   text-decoration: none;
   transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
 }
-.button:hover { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-paper); }
+.button:hover { background: var(--color-page); border-color: var(--color-fg); color: var(--color-fg); }
 
 .button--quiet {
   background: transparent;
-  color: var(--color-muted);
-  border-color: color-mix(in srgb, var(--color-muted) 25%, transparent);
+  color: var(--color-dim);
+  border-color: var(--color-line);
 }
-.button--quiet:hover { background: transparent; color: var(--color-accent); border-color: var(--color-accent); }
+.button--quiet:hover { background: transparent; color: var(--color-fg); border-color: var(--color-fg); }
 
 .button--danger {
   background: transparent;
   color: var(--color-danger);
   border-color: var(--color-danger);
 }
-.button--danger:hover { background: var(--color-danger); border-color: var(--color-danger); color: var(--color-paper); }
+.button--danger:hover { background: var(--color-danger); border-color: var(--color-danger); color: var(--color-page); }
 
 .actions {
   display: flex;
@@ -510,7 +498,7 @@ footer a:hover { color: var(--color-accent); }
   gap: var(--space-3);
   margin-top: var(--space-5);
   padding-top: var(--space-4);
-  border-top: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent);
+  border-top: 1px solid var(--color-line);
 }
 .actions__spacer { margin-left: auto; }
 
@@ -526,7 +514,7 @@ footer a:hover { color: var(--color-accent); }
   font-size: var(--step--1);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-warning);
+  color: var(--color-dim);
   margin: 0 0 var(--space-3);
 }
 
@@ -538,7 +526,7 @@ footer a:hover { color: var(--color-accent); }
   margin: 0 0 var(--space-3);
 }
 
-.gate__lede { color: var(--color-muted); margin: 0 0 var(--space-5); }
+.gate__lede { color: var(--color-dim); margin: 0 0 var(--space-5); }
 
 .gate .button { width: 100%; }
 
@@ -551,21 +539,21 @@ footer a:hover { color: var(--color-accent); }
   align-items: center;
   gap: var(--space-3);
   padding-block: var(--space-3);
-  border-top: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent);
+  border-top: 1px solid var(--color-line);
 }
-.rowlist li:last-child { border-bottom: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent); }
+.rowlist li:last-child { border-bottom: 1px solid var(--color-line); }
 .rowlist__title {
   font-family: var(--font-ui);
   font-weight: 550;
-  color: var(--color-ink);
+  color: var(--color-fg);
   text-decoration: none;
   flex: 1 1 14rem;
 }
-.rowlist__title:hover { color: var(--color-accent); }
+.rowlist__title:hover { color: var(--color-fg); }
 .rowlist__meta {
   font-family: var(--font-mono);
   font-size: var(--step--1);
-  color: var(--color-muted);
+  color: var(--color-dim);
 }
 .rowlist form { display: inline; }
 
@@ -610,8 +598,8 @@ footer a:hover { color: var(--color-accent); }
   background-image:
     repeating-linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--color-void) 35%, transparent) 0,
-      color-mix(in srgb, var(--color-void) 35%, transparent) 1px,
+      color-mix(in srgb, var(--crt-void) 35%, transparent) 0,
+      color-mix(in srgb, var(--crt-void) 35%, transparent) 1px,
       transparent 1px,
       transparent 3px
     ),
@@ -640,7 +628,7 @@ footer a:hover { color: var(--color-accent); }
   background: radial-gradient(
     ellipse at center,
     transparent 55%,
-    color-mix(in srgb, var(--color-void) 55%, transparent) 100%
+    color-mix(in srgb, var(--crt-void) 55%, transparent) 100%
   );
 }
 

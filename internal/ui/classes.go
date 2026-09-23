@@ -1,11 +1,7 @@
 package ui
 
-// Shared Tailwind utility clusters used across templates. These are an interim
-// stand-in for @layer components / @apply once typography is locked — keep
-// them as utility strings, not semantic CSS class names in main.css.
-//
-// Type uses @theme fluid tokens (text-hero, text-nav, text-title, text-meta,
-// text-micro) from internal/ui/tailwind/input.css — no arbitrary text-[..].
+// Shared Tailwind utility clusters for templates. Keep as utility strings
+// (listed in @source); don't invent semantic class names in main.css.
 
 const (
 	classPageHead = "mb-16"

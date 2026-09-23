@@ -2,7 +2,7 @@ package ui
 
 import "github.com/mattbx/mattbx-go/internal/ui/static"
 
-// Layout is the shell every page renders into.
+// Layout is the site shell.
 templ Layout(p Page) {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -62,7 +62,7 @@ templ Layout(p Page) {
 	</html>
 }
 
-// adminBar is a persistent reminder that you are signed in with write access.
+// Admin write-access bar.
 templ adminBar() {
 	<div class="admin-bar font-mono text-meta bg-surface border-b border-line py-2">
 		<div class="w-full px-gutter flex flex-wrap items-center gap-6">
@@ -76,7 +76,6 @@ templ adminBar() {
 	</div>
 }
 
-// current marks the active nav item for assistive technology and styling.
 func current(active bool) templ.Attributes {
 	if active {
 		return templ.Attributes{"aria-current": "page"}

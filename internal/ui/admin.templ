@@ -54,8 +54,7 @@ templ AdminDashboard(p Page, posts []*db.Post, projects []*db.Project) {
 	}
 }
 
-// PostFormView carries a post form's state, including anything the user just
-// typed, so a validation failure never loses their work.
+// Post form state; keeps typed values after validation errors.
 type PostFormView struct {
 	Post   *db.Post
 	IsNew  bool
@@ -107,7 +106,6 @@ templ PostForm(p Page, v PostFormView) {
 	}
 }
 
-// ProjectFormView is the portfolio equivalent of PostFormView.
 type ProjectFormView struct {
 	Project *db.Project
 	IsNew   bool
@@ -192,7 +190,6 @@ templ ProjectForm(p Page, v ProjectFormView) {
 	}
 }
 
-// formActions renders Save / Cancel, plus Delete once the record exists.
 templ formActions(isNew bool, deletePath, cancelPath string) {
 	<div class="actions">
 		<button class="button" type="submit">Save</button>
@@ -204,8 +201,7 @@ templ formActions(isNew bool, deletePath, cancelPath string) {
 	</div>
 }
 
-// ConfirmDelete is a real page rather than a JavaScript dialog, so the
-// destructive step works the same with or without scripting.
+// Confirm page so delete works without JS.
 templ ConfirmDelete(p Page, title, action, cancelPath string) {
 	@Layout(p) {
 		<div class="gate">

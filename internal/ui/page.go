@@ -10,7 +10,7 @@ import (
 	"github.com/mattbx/mattbx-go/internal/db"
 )
 
-// Edit these in one place to rebrand the site.
+// Site copy — edit here to rebrand.
 const (
 	SiteName    = "Hi there, I'm Matt!"
 	SiteMark    = "Mbx"
@@ -18,26 +18,15 @@ const (
 	SiteTagline = "I design and build digital products and things with my dog Pippi, in Sydney AU.*Available for work opportunities and tacos.*This is mostly placeholder content for now until I have something to say."
 )
 
-// Page carries the per-request context the shell needs. Handlers build one and
-// pass it into every top-level component.
+// Page is per-request shell context from handlers.
 type Page struct {
-	Title string // page title; SiteName is appended by the shell
-
-	// Description populates the meta description and og:description.
+	Title       string // SiteName appended by the shell when set
 	Description string
-
-	// Nav marks the active navigation item: "blog", "about", "portfolio", or "".
-	Nav string
-
-	// IsAdmin controls whether the admin toolbar renders. It is presentation
-	// only — every protected route is gated by middleware, never by this flag.
+	Nav         string // "blog" | "about" | "portfolio" | ""
+	// IsAdmin is presentation only (toolbar). Access is middleware-gated.
 	IsAdmin bool
-
-	// BaseURL is the site's public origin, used for absolute URLs.
 	BaseURL string
-
-	// Path is the current request path, used to build the canonical URL.
-	Path string
+	Path    string
 }
 
 func (p Page) DocumentTitle() string {
@@ -53,21 +42,16 @@ func (p Page) CanonicalURL() string {
 
 func (p Page) Year() string { return time.Now().Format("2006") }
 
-// railDate is the long form shown in the margin ("2 Sep 2026").
-func railDate(t time.Time) string { return t.Format("2 Jan 2006") }
-
-// machineDate is the value for <time datetime="…">.
+func railDate(t time.Time) string    { return t.Format("2 Jan 2006") }
 func machineDate(t time.Time) string { return t.Format("2006-01-02") }
 
-// readingTime estimates minutes from the Markdown source at 220 wpm, floored
-// at one minute so nothing ever reads "0 min".
+// readingTime at ~220 wpm; floor 1 so nothing reads "0 min".
 func readingTime(source string) string {
 	words := len(strings.Fields(source))
 	minutes := max(words/220, 1)
 	return fmt.Sprintf("%d min", minutes)
 }
 
-// postCount renders a human count for the index eyebrow.
 func postCount(n int, singular, plural string) string {
 	if n == 1 {
 		return fmt.Sprintf("1 %s", singular)
@@ -75,8 +59,6 @@ func postCount(n int, singular, plural string) string {
 	return fmt.Sprintf("%d %s", n, plural)
 }
 
-// statusOf describes whether an item is live or still a draft. Only ever shown
-// to admins, since drafts are filtered out of public queries entirely.
 func statusOf(published bool) string {
 	if published {
 		return "live"
@@ -84,10 +66,8 @@ func statusOf(published bool) string {
 	return "draft"
 }
 
-// hasLinks reports whether a project has anything to link out to.
 func hasLinks(p *db.Project) bool { return p.LinkURL != "" || p.RepoURL != "" }
 
-// editPostPath and editProjectPath keep admin deep-links in one place.
 func editPostPath(id int64) string {
 	return fmt.Sprintf("/admin/posts/%d/edit", id)
 }
@@ -96,7 +76,6 @@ func editProjectPath(id int64) string {
 	return fmt.Sprintf("/admin/projects/%d/edit", id)
 }
 
-// errorCode formats an HTTP status for the error page's eyebrow.
 func errorCode(status int) string { return fmt.Sprintf("Error %d", status) }
 
 func statusClass(published bool) string {
@@ -111,7 +90,6 @@ func orderLabel(n int) string { return strconv.Itoa(n) }
 func deletePostPath(id int64) string    { return fmt.Sprintf("/admin/posts/%d/delete", id) }
 func deleteProjectPath(id int64) string { return fmt.Sprintf("/admin/projects/%d/delete", id) }
 
-// formEyebrow and formTitle keep the new/edit wording consistent.
 func formEyebrow(isNew bool, noun string) string {
 	if isNew {
 		return "New " + noun
@@ -126,10 +104,7 @@ func formTitle(isNew bool, current, fallback string) string {
 	return current
 }
 
-// DisplayTitle is what's shown wherever a post needs a title-shaped label.
-// Micropub notes are posted without one by convention (that's what makes them
-// notes rather than articles), so this falls back to a truncated snippet of
-// the body rather than showing an empty heading.
+// DisplayTitle falls back to a body snippet for untitled Micropub notes.
 func DisplayTitle(post *db.Post) string {
 	if post.Title != "" {
 		return post.Title
@@ -137,12 +112,7 @@ func DisplayTitle(post *db.Post) string {
 	return snippet(post.BodyMD, 60)
 }
 
-// snippet collapses whitespace/newlines and truncates on a word boundary.
-//
-// max counts runes, not bytes: len() and a raw byte slice both operate on
-// UTF-8 bytes, so cutting at a byte index can land inside a multi-byte rune
-// (any non-ASCII text — accents, CJK, emoji) and produce invalid UTF-8.
-// []rune makes the cut land on a character boundary regardless of encoding.
+// snippet truncates on a word boundary; max is runes (not bytes) for UTF-8 safety.
 func snippet(source string, max int) string {
 	fields := strings.Fields(source)
 	joined := strings.Join(fields, " ")

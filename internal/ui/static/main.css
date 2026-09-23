@@ -1,17 +1,6 @@
-/* ===========================================================================
-   mattbx — "marginalia"
+/* Layout / components still in CSS. Colors + fonts: tailwind/input.css. */
 
-   The page is a working notebook: a narrow mono rail on the left carries the
-   metadata (dates, status, stack), and the prose sits beside it at a readable
-   measure. The rail is the one loud idea; everything else stays quiet.
-
-   Colors live in internal/ui/tailwind/input.css (@theme). This file consumes
-   --color-* via var() and holds layout, type scale, spacing, and components
-   until those migrate page by page to Tailwind utilities.
-   =========================================================================== */
-
-/* --- Tokens (non-color) -------------------------------------------------- */
-/* Font stacks live in internal/ui/tailwind/input.css (@theme). */
+/* Legacy spacing / measure (migrate with pages). */
 
 :root {
   --step--1: 0.8125rem;
@@ -41,8 +30,6 @@
   --tap: 44px;
 }
 
-/* --- Base ---------------------------------------------------------------- */
-
 *, *::before, *::after { box-sizing: border-box; }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -70,8 +57,7 @@ a:hover { opacity: 0.8; }
 
 img { max-width: 100%; height: auto; }
 
-/* Wordmark # prefix and nav chrome that need pseudo-elements / aria selectors.
-   Layout, color, and type for these live as utilities on the elements. */
+/* Wordmark / nav chrome that need pseudo-elements. */
 .wordmark::before { content: "# "; color: var(--color-fg); }
 
 .nav a {
@@ -85,17 +71,14 @@ img { max-width: 100%; height: auto; }
   font-weight: 700;
 }
 
-/* Global `a` is fg; restore dim chrome links in footer/admin. */
+/* Unlayered `a` is fg; keep footer/admin dim. */
 footer a { color: var(--color-dim); }
 footer a:hover { color: var(--color-fg); opacity: 1; }
 
 .admin-bar a { color: var(--color-dim); text-decoration: none; }
 .admin-bar a:hover { color: var(--color-fg); opacity: 1; }
 
-/* --- Hover: underline in/out ---------------------------------------------
-   Draws in from the left on enter, leaves to the right on exit. An element
-   marked aria-current="page" draws in and stays. Uses ::before so it does
-   not collide with .is-locked's trailing "*" on the same nav link. */
+/* Underline: enter LTR, exit RTL. ::before avoids .is-locked's "*". */
 .hover-underline {
   position: relative;
   text-decoration: none;
@@ -118,11 +101,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   transform-origin: left center;
 }
 
-/* --- Hover: row fill + inverse text (reusable) ---------------------------
-   Opt in with class="hover-fill". A solid fg bar wipes in; every descendant
-   flips to page (brutal invert — phosphor slab in dark). Keyframes, not
-   transitions: a fast pass still plays the full fill. Override with
-   --hover-fill-bg / --hover-fill-fg if needed. */
+/* hover-fill: keyframed fg wipe + page text. Override --hover-fill-*. */
 .hover-fill {
   --hover-fill-bg: var(--color-fg);
   --hover-fill-fg: var(--color-page);
@@ -161,7 +140,6 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
   .hover-underline::before { transition: none; }
-  /* Instant solid invert — still bold, no motion. */
   .hover-fill::before {
     animation: none;
     transform: scaleX(0);
@@ -171,7 +149,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   }
 }
 
-/* --- The rail: the signature layout device ------------------------------- */
+/* Leaf + rail */
 
 .leaf {
   display: grid;
@@ -214,7 +192,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 .rail__tag { color: var(--color-dim); }
 .rail__tag::before { content: "#"; opacity: 0.6; }
 
-/* Below the rail's breakpoint the metadata becomes a single inline line. */
+
 @media (max-width: 46rem) {
   .leaf { grid-template-columns: 1fr; gap: var(--space-3); }
   .rail {
@@ -230,7 +208,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   .rail__rule { display: none; }
 }
 
-/* --- Index: the ledger --------------------------------------------------- */
+/* Ledger */
 
 .ledger { display: flex; flex-direction: column; list-style: none; margin: 0; padding: 0; }
 
@@ -287,7 +265,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 }
 
 
-/* --- Prose --------------------------------------------------------------- */
+/* Prose */
 
 .prose { max-width: var(--measure); }
 
@@ -353,8 +331,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 }
 .prose pre code { background: none; padding: 0; font-size: inherit; }
 
-/* Chroma sets its own theme background; keep code blocks in the site palette.
-   The extra class beats chroma.css, which loads after this file. */
+/* Beat chroma.css theme bg (loads after this file). */
 .prose pre.chroma { background: var(--color-surface); }
 
 .prose table {
@@ -377,7 +354,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   border: 1px solid var(--color-line);
 }
 
-/* Heading anchors, revealed on hover — quiet until wanted. */
+
 .prose :is(h2, h3) { position: relative; }
 .prose :is(h2, h3):hover::before {
   content: "#";
@@ -388,7 +365,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   font-weight: 400;
 }
 
-/* --- Forms --------------------------------------------------------------- */
+/* Forms */
 
 .field { display: block; margin-bottom: var(--space-4); }
 
@@ -454,7 +431,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   gap: var(--space-4);
 }
 
-/* --- Buttons ------------------------------------------------------------- */
+/* Buttons */
 
 .button {
   display: inline-flex;
@@ -502,7 +479,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 }
 .actions__spacer { margin-left: auto; }
 
-/* --- The gate: portfolio and admin sign-in ------------------------------- */
+/* Gate */
 
 .gate {
   max-width: 24rem;
@@ -530,7 +507,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 
 .gate .button { width: 100%; }
 
-/* --- Admin --------------------------------------------------------------- */
+/* Admin lists */
 
 .rowlist { list-style: none; margin: 0; padding: 0; }
 .rowlist li {
@@ -557,7 +534,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 }
 .rowlist form { display: inline; }
 
-/* --- Motion -------------------------------------------------------------- */
+/* Entry rise */
 
 @media (prefers-reduced-motion: no-preference) {
   .entry, .gate {
@@ -575,18 +552,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   to   { opacity: 1; transform: none; }
 }
 
-/* --- CRT overlay (unwired) -------------------------------------------------
-   A scanline + vignette overlay, built as a standalone, reusable component
-   (see internal/ui/crt.templ's CRTOverlay()) that isn't wired into any page
-   yet — home.templ has no hero container with its own background for this
-   to sit over convincingly. Drop it into any `position: relative` container
-   once one exists; it fills that container via inset: 0.
-
-   Two tiled gradients rather than a per-pixel SVG displacement filter: much
-   cheaper to render, and just as convincing at this scale. The second
-   gradient is a faint red tint offset from the scanlines to fake RGB fringe
-   without a real chromatic-aberration filter. mix-blend-mode: multiply lets
-   it sit over whatever's underneath without needing to know its color. */
+/* CRT overlay (crt.templ). Cheap tiled scanlines + fake RGB fringe. */
 
 .crt-overlay {
   position: absolute;

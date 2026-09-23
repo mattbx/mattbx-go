@@ -1,16 +1,9 @@
-// First-party progressive enhancement. Every page works without this file;
-// effects added here hook into the "js" class so visitors without JavaScript
-// get plain, readable HTML.
+// Progressive enhancement. Pages work without this file; we only add the "js" class.
 document.documentElement.classList.add("js");
 
-// --- Metadata readouts (internal/ui/meta.templ) -----------------------------
-// Each ticks independently and no-ops if its element isn't on the current
-// page, so these run safely on every route regardless of which pieces (if
-// any) a given page uses.
+// Meta readouts (meta.templ). Each no-ops when its nodes are absent.
 
-// formatDuration renders seconds as "Nd HH:MM:SS", matching the shape the
-// server renders initially (internal/ui/meta.go's uptimeLabel), so there's no
-// visible jump when JS takes over ticking.
+// Matches meta.go uptimeLabel so the first tick doesn't jump.
 function formatDuration(totalSeconds) {
   const s = Math.max(0, Math.floor(totalSeconds));
   const days = Math.floor(s / 86400);
@@ -20,9 +13,7 @@ function formatDuration(totalSeconds) {
   return `${days}d ${hours}:${mins}:${secs}`;
 }
 
-// tickClocks keeps [data-meta="clock"] elements on the time zone named in
-// their own data-tz, not the visitor's — the site's clock is Sydney's,
-// wherever the page is being read from.
+// Clock uses data-tz (site zone), not the visitor's.
 function tickClocks() {
   const els = document.querySelectorAll('[data-meta="clock"]');
   if (els.length === 0) return;
@@ -44,8 +35,6 @@ function tickClocks() {
   setInterval(update, 1000);
 }
 
-// tickUptime keeps [data-meta="uptime"] elements counting up from the process
-// start time the server rendered into data-started (unix seconds).
 function tickUptime() {
   const els = document.querySelectorAll('[data-meta="uptime"]');
   if (els.length === 0) return;
@@ -61,8 +50,6 @@ function tickUptime() {
   setInterval(update, 1000);
 }
 
-// tickScreenTime counts up from zero for however long this tab has been
-// open. Purely client-side — nothing is sent anywhere or stored.
 function tickScreenTime() {
   const els = document.querySelectorAll('[data-meta="screentime"]');
   if (els.length === 0) return;
@@ -77,15 +64,10 @@ function tickScreenTime() {
   setInterval(update, 1000);
 }
 
-// --- Letter scramble --------------------------------------------------------
-// Cycles random glyphs across a short label, settling left-to-right into the
-// real text on hover/focus. Scoped to mono, uppercase, short labels via
-// [data-scramble]. Defaults: step 4, ~15fps.
-
+// Scramble: settle left-to-right on [data-scramble]. Prefer inner [data-label].
 const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+/<>";
 
 function scramble(el, { step = 4, fps = 15 } = {}) {
-  // Prefer an inner [data-label] so magnetic wrappers keep their DOM.
   const target = el.querySelector("[data-label]") || el;
   const original = target.dataset.scrambleText || target.textContent;
   target.dataset.scrambleText = original;
@@ -94,7 +76,6 @@ function scramble(el, { step = 4, fps = 15 } = {}) {
   clearInterval(target._scrambleTimer);
   target._scrambleTimer = setInterval(() => {
     frame++;
-    // Chars left of (frame - step) are final — matches shuffle-letters shape.
     const settled = frame - step;
     let out = "";
     for (let i = 0; i < len; i++) {
@@ -122,10 +103,8 @@ function initScramble() {
   });
 }
 
-// --- Magnetic pull ----------------------------------------------------------
-// rAF lerp toward (pointer - centre) * force. Loop stops when settled.
-// Rect measured on pointerenter so scroll never makes the centre stale.
-// Gated to fine pointers; reduced-motion skips entirely.
+// Magnetic: rAF lerp; measure centre on pointerenter; stop when settled.
+// Opt in with data-magnetic (+ optional [data-label] for counter-move).
 
 function bindMagnetic(el) {
   const ease = Number(el.dataset.ease) || 0.2;
@@ -165,8 +144,6 @@ function bindMagnetic(el) {
   area.addEventListener("pointerenter", measure);
   area.addEventListener("pointermove", move);
   area.addEventListener("pointerleave", reset);
-  // Focus parity for keyboard users — mild nudge toward centre is a no-op;
-  // measure still keeps hover ready after tabbing.
   el.addEventListener("focus", measure);
   el.addEventListener("blur", reset);
 }

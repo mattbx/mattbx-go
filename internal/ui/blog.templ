@@ -20,7 +20,7 @@ templ BlogIndex(p Page, posts []*db.Post) {
 	}
 }
 
-// postEntry is one row of the ledger: date in the margin, title beside it.
+// One ledger row.
 templ postEntry(post *db.Post) {
 	<li class="entry hover-fill">
 		<div class="entry__meta">

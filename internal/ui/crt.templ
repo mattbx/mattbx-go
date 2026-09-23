@@ -1,14 +1,7 @@
 package ui
 
-// crt.templ holds the CRT scanline overlay as a standalone, reusable
-// component. It isn't wired into any page yet — home.templ has no hero
-// container with its own background for scanlines to sit over
-// convincingly, and that's being designed separately (video hero,
-// typography) rather than guessed at here.
-//
-// When a hero exists: give its container `position: relative`, then drop
-// @CRTOverlay() as its last child. The overlay and vignette both use
-// `inset: 0`, so they fill whatever contains them.
+// CRT overlay: drop @CRTOverlay() as last child of a position:relative hero.
+// Not wired yet — needs a container with its own background.
 templ CRTOverlay() {
 	<div class="crt-overlay crt-overlay--flicker" aria-hidden="true"></div>
 	<div class="crt-overlay__vignette" aria-hidden="true"></div>

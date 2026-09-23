@@ -11,15 +11,9 @@
    =========================================================================== */
 
 /* --- Tokens (non-color) -------------------------------------------------- */
+/* Font stacks live in internal/ui/tailwind/input.css (@theme). */
 
 :root {
-  --font-prose: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
-                Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-ui:    ui-sans-serif, "PP Mori", -apple-system, BlinkMacSystemFont, "Segoe UI",
-                Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
-  /* --font-mono is defined in tailwind/input.css (@theme), the single swap
-     point for the terminal face. */
-
   --step--1: 0.8125rem;
   --step-0:  1.0625rem;
   --step-1:  1.125rem;
@@ -62,11 +56,7 @@ body {
   line-height: 1.65;
   text-rendering: optimizeLegibility;
   -webkit-text-size-adjust: none;
-  text-align: baseline;
   -webkit-font-smoothing: antialiased;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
 }
 
 a { color: var(--color-accent); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
@@ -80,68 +70,15 @@ a:hover { color: color-mix(in srgb, var(--color-accent) 80%, var(--color-ink)); 
 
 img { max-width: 100%; height: auto; }
 
-.skip-link {
-  position: absolute;
-  left: -9999px;
-  top: var(--space-2);
-  background: var(--color-ink);
-  color: var(--color-paper);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius);
-  z-index: 10;
-}
-.skip-link:focus { left: var(--space-3); }
-
-.visually-hidden {
-  position: absolute; width: 1px; height: 1px;
-  padding: 0; margin: -1px; overflow: hidden;
-  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
-}
-
-/* --- Shell --------------------------------------------------------------- */
-
-.shell {
-  width: 100%;
-  padding-inline: var(--gutter);
-}
-
-.masthead {
-  padding-block: var(--space-4);
-  margin-bottom: var(--space-6);
-}
-
-.masthead__inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-4);
-  justify-content: space-between;
-}
-
-/* color and font-family intentionally omitted — set via Tailwind utilities
-   on the wordmark in layout.templ so they are not blocked by unlayered CSS. */
-.wordmark {
-  font-size: var(--step-0);
-  color: var(--color-ink);
-  text-decoration: none;
-  font-family: var(--font-ui);
-}
+/* Wordmark # prefix and nav chrome that need pseudo-elements / aria selectors.
+   Layout, color, and type for these live as utilities on the elements. */
 .wordmark::before { content: "# "; color: var(--color-ink); }
 .wordmark:hover { color: var(--color-accent); }
 
-.nav {
-  display: flex;
-  gap: var(--space-4);
-} 
-
 .nav a {
   color: var(--color-ink);
-  text-decoration: none;
   padding-block: var(--space-half);
-  border-bottom: 1.5px solid transparent;
 }
-.nav a:hover { color: var(--color-ink); border-bottom-color: var(--color-phosphor); }
-.nav a[aria-current="page"] { color: var(--color-ink); border-bottom-color: var(--color-ink); }
 .nav .is-locked::after {
   content: "*";
   color: var(--color-warning);
@@ -149,20 +86,57 @@ img { max-width: 100%; height: auto; }
   font-weight: 700;
 }
 
-.main { flex: 1; }
+/* Global `a` sets accent; these restore muted chrome links. */
+footer a { color: var(--color-muted); }
+footer a:hover { color: var(--color-accent); }
 
-.colophon {
-  margin-top: var(--space-7);
-  padding-block: var(--space-4) var(--space-5);
-  font-family: var(--font-mono);
-  color: var(--color-muted);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  justify-content: space-between;
+.admin-bar a { color: var(--color-muted); text-decoration: none; }
+.admin-bar a:hover { color: var(--color-accent); }
+
+/* --- Hover: underline in/out (teardown idea #5) ---------------------------
+   Draws in from the left on enter, leaves to the right on exit — the
+   direction reversal (not just a fade) is what reads as intentional rather
+   than a generic transition. An element marked aria-current="page" draws in
+   and stays, doubling as a "you are here" indicator (see .nav a below).
+   Uses ::before, not ::after, so it doesn't collide with .is-locked's
+   trailing "*" marker on the same nav link. */
+.hover-underline {
+  position: relative;
+  text-decoration: none;
 }
-.colophon a { color: var(--color-muted); }
-.colophon a:hover { color: var(--color-accent); }
+.hover-underline::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.15em;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
+}
+.hover-underline:is(:hover, :focus-visible)::before,
+.hover-underline[aria-current="page"]::before {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hover-underline::before { transition: none; }
+  .entry::before,
+  .entry__meta {
+    animation: none;
+  }
+  .entry::before { opacity: 0; }
+  .entry:hover::before,
+  .entry:focus-within::before {
+    opacity: 0.1;
+  }
+  .entry:hover .entry__meta,
+  .entry:focus-within .entry__meta {
+    color: var(--color-ink);
+  }
+}
 
 /* --- The rail: the signature layout device ------------------------------- */
 
@@ -223,45 +197,52 @@ img { max-width: 100%; height: auto; }
   .rail__rule { display: none; }
 }
 
-/* --- Page headers -------------------------------------------------------- */
-
-.page-head { margin-bottom: var(--space-6); }
-
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: var(--step--1);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-muted);
-  margin: 0 0 var(--space-2);
-}
-
-.page-title {
-  font-family: var(--font-ui);
-  font-size: var(--step-4);
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.15;
-  margin: 0;
-  color: var(--color-ink);
-}
-
-.page-lede {
-  margin: var(--space-2) 0 0;
-}
-
 /* --- Index: the ledger --------------------------------------------------- */
 
 .ledger { list-style: none; margin: 0; padding: 0; }
 
 .entry {
+  position: relative;
+  z-index: 0;
   display: grid;
   grid-template-columns: var(--rail) minmax(0, 1fr);
   gap: var(--space-5);
   padding-block: var(--space-4);
+  padding-inline: var(--space-3);
+  margin-inline: calc(var(--space-3) * -1);
   border-top: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent);
 }
 .entry:last-child { border-bottom: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent); }
+
+/* Row fill (teardown idea #4): a background bar wipes in behind the whole
+   row on hover, sweeping out again on exit. Built with keyframe animations
+   rather than a transition — a transition reverses instantly mid-flight on
+   a fast pointer pass and barely reads, while swapping which keyframe is
+   assigned always plays a full, uninterrupted sweep in either direction.
+   The trade-off: the -out keyframe plays once on load too, which we're
+   framing as an on-brand "warming up" flicker rather than fighting it. */
+.entry::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-accent);
+  opacity: 0.1;
+  transform-origin: left center;
+  animation: entry-fill-out 260ms ease forwards;
+}
+.entry:hover::before,
+.entry:focus-within::before {
+  animation: entry-fill-in 260ms ease forwards;
+}
+@keyframes entry-fill-in {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes entry-fill-out {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
 
 .entry__meta {
   font-family: var(--font-mono);
@@ -273,7 +254,19 @@ img { max-width: 100%; height: auto; }
   /* Hug the content: without this a badge stretches across the whole rail. */
   align-items: flex-start;
   gap: var(--space-1);
-  transition: color 140ms ease;
+  animation: entry-text-out 260ms ease forwards;
+}
+.entry:hover .entry__meta,
+.entry:focus-within .entry__meta {
+  animation: entry-text-in 260ms ease forwards;
+}
+@keyframes entry-text-in {
+  from { color: var(--color-muted); }
+  to { color: var(--color-ink); }
+}
+@keyframes entry-text-out {
+  from { color: var(--color-ink); }
+  to { color: var(--color-muted); }
 }
 
 .entry__title {
@@ -285,15 +278,12 @@ img { max-width: 100%; height: auto; }
   margin: 0;
 }
 .entry__title a { color: var(--color-ink); text-decoration: none; }
-.entry__title a:hover { color: var(--color-accent); }
 
 .entry__summary {
   margin: var(--space-2) 0 0;
   color: var(--color-muted);
   line-height: 1.6;
 }
-
-.entry:hover .entry__meta { color: var(--color-accent); }
 
 .entry__links {
   margin-top: var(--space-3);
@@ -308,22 +298,6 @@ img { max-width: 100%; height: auto; }
   .entry { grid-template-columns: 1fr; gap: var(--space-2); }
   .entry__meta { flex-direction: row; flex-wrap: wrap; gap: var(--space-3); padding-top: 0; }
 }
-
-/* --- Badges -------------------------------------------------------------- */
-
-.badge {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0.15em 0.5em;
-  border-radius: var(--radius);
-  border: 1px solid currentColor;
-  line-height: 1.5;
-}
-.badge--draft { color: var(--color-warning); }
-.badge--live  { color: var(--color-accent); }
 
 /* --- Prose --------------------------------------------------------------- */
 
@@ -540,20 +514,6 @@ img { max-width: 100%; height: auto; }
 }
 .actions__spacer { margin-left: auto; }
 
-/* --- Notices ------------------------------------------------------------- */
-
-.notice {
-  font-family: var(--font-ui);
-  font-size: var(--step--1);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius);
-  border-left: 2px solid var(--color-danger);
-  background: var(--color-surface);
-  color: var(--color-ink);
-  margin-bottom: var(--space-4);
-}
-.notice--ok { border-left-color: var(--color-accent); }
-
 /* --- The gate: portfolio and admin sign-in ------------------------------- */
 
 .gate {
@@ -583,58 +543,6 @@ img { max-width: 100%; height: auto; }
 .gate .button { width: 100%; }
 
 /* --- Admin --------------------------------------------------------------- */
-
-.admin-bar {
-  font-family: var(--font-mono);
-  font-size: var(--step--1);
-  background: var(--color-surface);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent);
-  padding-block: var(--space-2);
-}
-.admin-bar__inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-4);
-}
-.admin-bar a { color: var(--color-muted); text-decoration: none; }
-.admin-bar a:hover { color: var(--color-accent); }
-.admin-bar form { margin-left: auto; }
-.admin-bar button {
-  font: inherit;
-  background: none;
-  border: 0;
-  color: var(--color-muted);
-  cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-}
-.admin-bar button:hover { color: var(--color-danger); }
-
-.section-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-top: var(--space-6);
-  margin-bottom: var(--space-3);
-}
-.section-head h2 {
-  font-family: var(--font-ui);
-  margin: 0;
-}
-
-.empty {
-  border: 1px dashed color-mix(in srgb, var(--color-muted) 25%, transparent);
-  border-radius: var(--radius);
-  padding: var(--space-5);
-  text-align: center;
-  color: var(--color-muted);
-  font-family: var(--font-ui);
-  font-size: var(--step--1);
-}
 
 .rowlist { list-style: none; margin: 0; padding: 0; }
 .rowlist li {
@@ -679,7 +587,68 @@ img { max-width: 100%; height: auto; }
   to   { opacity: 1; transform: none; }
 }
 
+/* --- CRT overlay (unwired) -------------------------------------------------
+   A scanline + vignette overlay, built as a standalone, reusable component
+   (see internal/ui/crt.templ's CRTOverlay()) that isn't wired into any page
+   yet — home.templ has no hero container with its own background for this
+   to sit over convincingly. Drop it into any `position: relative` container
+   once one exists; it fills that container via inset: 0.
+
+   Two tiled gradients rather than a per-pixel SVG displacement filter: much
+   cheaper to render, and just as convincing at this scale. The second
+   gradient is a faint red tint offset from the scanlines to fake RGB fringe
+   without a real chromatic-aberration filter. mix-blend-mode: multiply lets
+   it sit over whatever's underneath without needing to know its color. */
+
+.crt-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-void) 35%, transparent) 0,
+      color-mix(in srgb, var(--color-void) 35%, transparent) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    repeating-linear-gradient(
+      to right,
+      color-mix(in srgb, red 6%, transparent) 0,
+      color-mix(in srgb, red 6%, transparent) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+}
+.crt-overlay--flicker {
+  animation: crt-flicker 6s ease-in-out infinite;
+}
+@keyframes crt-flicker {
+  0%, 96%, 100% { opacity: 0.5; }
+  97% { opacity: 0.35; }
+  98% { opacity: 0.55; }
+}
+
+.crt-overlay__vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    color-mix(in srgb, var(--color-void) 55%, transparent) 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crt-overlay--flicker { animation: none; }
+}
+
 @media print {
-  .masthead, .colophon, .admin-bar, .rail { display: none; }
+  header, footer, .admin-bar, .rail { display: none; }
   body { color: #000; background: #fff; }
 }

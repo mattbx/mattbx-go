@@ -4,12 +4,12 @@ import "github.com/mattbx/mattbx-go/internal/db"
 
 templ BlogIndex(p Page, posts []*db.Post) {
 	@Layout(p) {
-		<div class="page-head">
-			<p class="eyebrow">{ postCount(len(posts), "post", "posts") }</p>
-			<h1 class="page-title font-ui text-lg! font-semibold tracking-tight text-ink">Posts</h1>
+		<div class={ classPageHead }>
+			<p class={ classEyebrow }>{ postCount(len(posts), "post", "posts") }</p>
+			<h1 class={ classPageTitleSm }>Posts</h1>
 		</div>
 		if len(posts) == 0 {
-			<p class="empty">Nothing published yet.</p>
+			<p class={ classEmpty }>Nothing published yet.</p>
 		} else {
 			<ol class="ledger">
 				for _, post := range posts {
@@ -27,7 +27,7 @@ templ postEntry(post *db.Post) {
 		<div class="entry__meta">
 			<time datetime={ machineDate(post.Date()) }>{ railDate(post.Date()) }</time>
 			if !post.Published {
-				<span class="badge badge--draft">draft</span>
+				<span class={ classBadge, "text-warning" }>draft</span>
 			}
 		</div>
 		<div>
@@ -66,7 +66,7 @@ templ BlogPost(p Page, post *db.Post) {
 				}
 				if !post.Published {
 					<div class="rail__rule"></div>
-					<span class="badge badge--draft">draft</span>
+					<span class={ classBadge, "text-warning" }>draft</span>
 				}
 				if p.IsAdmin {
 					<div class="rail__rule"></div>
@@ -74,12 +74,12 @@ templ BlogPost(p Page, post *db.Post) {
 				}
 			</aside>
 			<div>
-				<header class="page-head">
+				<header class={ classPageHead }>
 					if post.Title != "" {
-						<h1 class="page-title">{ post.Title }</h1>
+						<h1 class={ classPageTitle }>{ post.Title }</h1>
 					}
 					if post.Summary != "" {
-						<p class="page-lede">{ post.Summary }</p>
+						<p class={ classPageLede }>{ post.Summary }</p>
 					}
 				</header>
 				<div class="prose">

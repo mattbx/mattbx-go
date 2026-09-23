@@ -54,16 +54,17 @@ These will break the deploy if violated:
   at request time.
 - `*_templ.go` is gitignored. Generated fresh by `scripts/local.sh` and the
   Dockerfile.
-- **Colors live in `internal/ui/tailwind/input.css`.** Define semantic
-  `--color-*` tokens in `@theme static` (light defaults); dark overrides the
-  plain CSS variables under `@layer theme` inside `@media (prefers-color-scheme:
-  dark)` — Tailwind rejects nesting `@theme` inside `@media`. `main.css`
-  consumes those variables with `var()` and must not redefine colors on
-  `:root`. Spacing, type scale, and layout tokens still live in `main.css`
-  until they migrate. Tailwind v4 is adopted page by page; Preflight is
-  deliberately not imported yet, and because `main.css` is unlayered it beats
-  every utility, so delete a template's legacy rules when it moves to
-  utilities.
+- **Colors and font stacks live in `internal/ui/tailwind/input.css`.** Define semantic
+  `--color-*` tokens and `--font-ui` / `--font-prose` / `--font-mono` in `@theme static`
+  (light defaults); dark overrides the plain CSS color variables under `@layer theme`
+  inside `@media (prefers-color-scheme: dark)` — Tailwind rejects nesting `@theme`
+  inside `@media`. `main.css` consumes those variables with `var()` and must not
+  redefine colors or font stacks on `:root`. Spacing, type scale, and layout tokens
+  still live in `main.css` until they migrate. Tailwind v4 is adopted page by page;
+  Preflight is deliberately not imported yet, and because `main.css` is unlayered it
+  beats every utility, so delete a template's legacy rules when it moves to
+  utilities. Shared utility clusters used from Go live in `internal/ui/classes.go`
+  and are listed in Tailwind's `@source` so they emit.
 - **`chroma.css` is syntax highlighting only.** Generated from Chroma's
   `github` / `github-dark` styles by `go generate ./internal/ui/...`. It is a
   separate palette from the site tokens; do not fold it into `@theme`. Code

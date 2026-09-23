@@ -77,6 +77,57 @@ function tickScreenTime() {
   setInterval(update, 1000);
 }
 
+// --- Letter scramble (teardown idea #3) -------------------------------------
+// Cycles random glyphs across a short label, settling left-to-right into the
+// real text on hover/focus. Deliberately scoped to mono, uppercase, short
+// labels (nav + footer links, via [data-scramble]) — in a proportional font
+// each cycling glyph has a different width, so the label jitters sideways as
+// it settles; monospace keeps every frame the same width, which is what
+// makes it read as a terminal effect instead of a bug.
+
+const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+// scramble(el) settles el's own text left-to-right, one character at a time.
+// step controls how many frames each character spends cycling before it
+// locks in; fps controls how fast those frames advance.
+function scramble(el, { step = 2, fps = 24 } = {}) {
+  const original = el.dataset.scrambleText || el.textContent;
+  el.dataset.scrambleText = original;
+  const len = original.length;
+  const totalFrames = len * step;
+  let frame = 0;
+  clearInterval(el._scrambleTimer);
+  el._scrambleTimer = setInterval(() => {
+    frame++;
+    const settled = Math.floor(frame / step);
+    let out = "";
+    for (let i = 0; i < len; i++) {
+      const ch = original[i];
+      out += i < settled || ch === " " ? ch : SCRAMBLE_CHARS[(Math.random() * SCRAMBLE_CHARS.length) | 0];
+    }
+    el.textContent = out;
+    if (frame >= totalFrames) {
+      el.textContent = original;
+      clearInterval(el._scrambleTimer);
+    }
+  }, 1000 / fps);
+}
+
+// initScramble wires pointerenter/focus on every [data-scramble] element.
+// Left alone entirely under prefers-reduced-motion, per the site convention
+// of guarding motion at the point it's triggered, not just in CSS.
+function initScramble() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const els = document.querySelectorAll("[data-scramble]");
+  if (els.length === 0) return;
+  els.forEach((el) => {
+    const run = () => scramble(el);
+    el.addEventListener("pointerenter", run);
+    el.addEventListener("focus", run);
+  });
+}
+
 tickClocks();
 tickUptime();
 tickScreenTime();
+initScramble();

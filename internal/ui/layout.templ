@@ -28,31 +28,31 @@ templ Layout(p Page) {
 			<script src={ static.URL("terminal.js") } defer></script>
 		</head>
 		<body class="flex flex-col justify-between min-h-screen">
-			<a class="skip-link" href="#main">Skip to content</a>
+			<a class={ classSkipLink } href="#main">Skip to content</a>
 			if p.IsAdmin {
 				@adminBar()
 			}
 			<header class="py-4 fixed top-0 left-0 right-0 z-10">
-				<div class="max-w-screen-4xl w-full mx-auto px-6 flex items-center justify-between">
-					<a class="wordmark font-ui text-lg! tracking-tight font-semibold text-ink" href="/">{ SiteMark }</a>
-					<nav class="nav font-mono uppercase text-lg! text-ink space-x-4 flex" aria-label="Primary">
-						<a href="/blog" { current(p.Nav == "blog")... }>Posts</a>
-						<a href="/about" { current(p.Nav == "about")... }>About</a>
-						<a href="/portfolio" class="is-locked" { current(p.Nav == "portfolio")... }>Portfolio</a>
+				<div class="max-w-site w-full mx-auto px-6 flex items-center justify-between">
+					<a class="wordmark font-ui text-lg tracking-tight font-semibold text-ink no-underline hover:text-accent" href="/">{ SiteMark }</a>
+					<nav class="nav font-mono uppercase text-lg text-ink flex gap-6" aria-label="Primary">
+						<a class="hover-underline" data-scramble="link" href="/blog" { current(p.Nav == "blog")... }>Posts</a>
+						<a class="hover-underline" data-scramble="link" href="/about" { current(p.Nav == "about")... }>About</a>
+						<a class="is-locked hover-underline" data-scramble="link" href="/portfolio" { current(p.Nav == "portfolio")... }>Portfolio</a>
 					</nav>
 				</div>
 			</header>
-			<main class="main pt-24 flex flex-col h-full max-w-screen-4xl w-full mx-auto px-6" id="main">
+			<main class="flex-1 pt-24 flex flex-col h-full max-w-site w-full mx-auto px-6" id="main">
 				{ children... }
 			</main>
-			<footer class="colophon font-mono pt-6 px-6 uppercase text-lg!">
+			<footer class="mt-24 pt-6 pb-10 px-6 font-mono uppercase text-lg text-muted flex flex-wrap gap-6 justify-between">
 				<span>© { p.Year() } { SiteName }</span>
 				<span>
-					<a href="/feed.xml">Atom feed</a>
+					<a class="hover-underline" data-scramble="link" href="/feed.xml">Atom feed</a>
 					{ " · " }
-					<a href="/feed.json">JSON feed</a>
+					<a class="hover-underline" data-scramble="link" href="/feed.json">JSON feed</a>
 					{ " · " }
-					<a href="https://micropub.spec.indieweb.org/">Miropub enabled</a>
+					<a class="hover-underline" href="https://micropub.spec.indieweb.org/">Miropub enabled</a>
 				</span>
 				<div class="w-full mt-4 pt-4 border-t border-muted/25">
 					@MetaRow()
@@ -64,13 +64,13 @@ templ Layout(p Page) {
 
 // adminBar is a persistent reminder that you are signed in with write access.
 templ adminBar() {
-	<div class="admin-bar">
-		<div class="shell admin-bar__inner">
+	<div class="admin-bar font-mono text-sm bg-surface border-b border-muted/25 py-2">
+		<div class="w-full px-6 flex flex-wrap items-center gap-6">
 			<a href="/admin">Admin</a>
 			<a href="/admin/posts/new">New post</a>
 			<a href="/admin/projects/new">New project</a>
-			<form method="post" action="/admin/logout">
-				<button type="submit">Sign out</button>
+			<form class="ml-auto" method="post" action="/admin/logout">
+				<button class="font-mono text-sm bg-transparent border-0 text-muted cursor-pointer p-0 underline underline-offset-2 hover:text-danger" type="submit">Sign out</button>
 			</form>
 		</div>
 	</div>

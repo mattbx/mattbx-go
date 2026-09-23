@@ -101,9 +101,9 @@ func errorCode(status int) string { return fmt.Sprintf("Error %d", status) }
 
 func statusClass(published bool) string {
 	if published {
-		return "badge--live"
+		return "text-accent"
 	}
-	return "badge--draft"
+	return "text-warning"
 }
 
 func orderLabel(n int) string { return strconv.Itoa(n) }

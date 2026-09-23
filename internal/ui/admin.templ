@@ -4,26 +4,26 @@ import "github.com/mattbx/mattbx-go/internal/db"
 
 templ AdminDashboard(p Page, posts []*db.Post, projects []*db.Project) {
 	@Layout(p) {
-		<div class="page-head">
-			<p class="eyebrow">Admin</p>
-			<h1 class="page-title">Everything you've written</h1>
-			<p class="page-lede">
+		<div class={ classPageHead }>
+			<p class={ classEyebrow }>Admin</p>
+			<h1 class={ classPageTitle }>Everything you've written</h1>
+			<p class={ classPageLede }>
 				Drafts are visible here and to you on the site, but never to anyone else.
 			</p>
 		</div>
 		<section aria-labelledby="posts">
-			<div class="section-head">
-				<h2 id="posts">Posts</h2>
+			<div class={ classSectionHead }>
+				<h2 class={ classPageTitleSm } id="posts">Posts</h2>
 				<a class="button button--quiet" href="/admin/posts/new">Write a post</a>
 			</div>
 			if len(posts) == 0 {
-				<p class="empty">No posts yet. Write the first one.</p>
+				<p class={ classEmpty }>No posts yet. Write the first one.</p>
 			} else {
 				<ul class="rowlist">
 					for _, post := range posts {
 						<li>
 							<a class="rowlist__title" href={ templ.SafeURL(editPostPath(post.ID)) }>{ DisplayTitle(post) }</a>
-							<span class={ "badge", statusClass(post.Published) }>{ statusOf(post.Published) }</span>
+							<span class={ classBadge, statusClass(post.Published) }>{ statusOf(post.Published) }</span>
 							<span class="rowlist__meta">{ railDate(post.Date()) }</span>
 							<a class="rowlist__meta" href={ templ.SafeURL("/blog/" + post.Slug) }>View</a>
 						</li>
@@ -32,18 +32,18 @@ templ AdminDashboard(p Page, posts []*db.Post, projects []*db.Project) {
 			}
 		</section>
 		<section aria-labelledby="projects">
-			<div class="section-head">
-				<h2 id="projects">Portfolio projects</h2>
+			<div class={ classSectionHead }>
+				<h2 class={ classPageTitleSm } id="projects">Portfolio projects</h2>
 				<a class="button button--quiet" href="/admin/projects/new">Add a project</a>
 			</div>
 			if len(projects) == 0 {
-				<p class="empty">No projects yet. Add the first one.</p>
+				<p class={ classEmpty }>No projects yet. Add the first one.</p>
 			} else {
 				<ul class="rowlist">
 					for _, project := range projects {
 						<li>
 							<a class="rowlist__title" href={ templ.SafeURL(editProjectPath(project.ID)) }>{ project.Title }</a>
-							<span class={ "badge", statusClass(project.Published) }>{ statusOf(project.Published) }</span>
+							<span class={ classBadge, statusClass(project.Published) }>{ statusOf(project.Published) }</span>
 							<span class="rowlist__meta">order { orderLabel(project.SortOrder) }</span>
 							<a class="rowlist__meta" href={ templ.SafeURL("/portfolio/" + project.Slug) }>View</a>
 						</li>
@@ -65,12 +65,12 @@ type PostFormView struct {
 
 templ PostForm(p Page, v PostFormView) {
 	@Layout(p) {
-		<div class="page-head">
-			<p class="eyebrow">{ formEyebrow(v.IsNew, "post") }</p>
-			<h1 class="page-title">{ formTitle(v.IsNew, v.Post.Title, "Write a post") }</h1>
+		<div class={ classPageHead }>
+			<p class={ classEyebrow }>{ formEyebrow(v.IsNew, "post") }</p>
+			<h1 class={ classPageTitle }>{ formTitle(v.IsNew, v.Post.Title, "Write a post") }</h1>
 		</div>
 		if v.Error != "" {
-			<p class="notice" role="alert">{ v.Error }</p>
+			<p class={ classNotice } role="alert">{ v.Error }</p>
 		}
 		<form method="post" action={ templ.SafeURL(v.Action) }>
 			<label class="field">
@@ -117,12 +117,12 @@ type ProjectFormView struct {
 
 templ ProjectForm(p Page, v ProjectFormView) {
 	@Layout(p) {
-		<div class="page-head">
-			<p class="eyebrow">{ formEyebrow(v.IsNew, "project") }</p>
-			<h1 class="page-title">{ formTitle(v.IsNew, v.Project.Title, "Add a project") }</h1>
+		<div class={ classPageHead }>
+			<p class={ classEyebrow }>{ formEyebrow(v.IsNew, "project") }</p>
+			<h1 class={ classPageTitle }>{ formTitle(v.IsNew, v.Project.Title, "Add a project") }</h1>
 		</div>
 		if v.Error != "" {
-			<p class="notice" role="alert">{ v.Error }</p>
+			<p class={ classNotice } role="alert">{ v.Error }</p>
 		}
 		<form method="post" action={ templ.SafeURL(v.Action) }>
 			<label class="field">

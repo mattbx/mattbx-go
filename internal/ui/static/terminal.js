@@ -158,8 +158,19 @@ function initMagnetic() {
   document.querySelectorAll("[data-magnetic]").forEach(bindMagnetic);
 }
 
+// Arm fill-out after first enter so leave can wipe without a page-load flash.
+function initHoverFillArm() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  document.querySelectorAll(".hover-fill-group").forEach((el) => {
+    const arm = () => el.classList.add("is-armed");
+    el.addEventListener("pointerenter", arm, { once: true });
+    el.addEventListener("focusin", arm, { once: true });
+  });
+}
+
 tickClocks();
 tickUptime();
 tickScreenTime();
 initScramble();
 initMagnetic();
+initHoverFillArm();

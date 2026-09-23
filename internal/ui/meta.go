@@ -7,6 +7,7 @@ package ui
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/mattbx/mattbx-go/internal/build"
@@ -16,8 +17,36 @@ import (
 // regardless of the visitor's location.
 const SiteTimeZone = "Australia/Sydney"
 
-// SiteCoordinates is a rounded, city-level lon/lat, not a precise location.
-const SiteCoordinates = "-33.87, 151.21"
+// City-level pin (Sydney), not a precise address.
+const (
+	siteLat = -33.87
+	siteLon = 151.21
+)
+
+// SiteCoordinates is lat/lon in DMS with hemisphere letters.
+var SiteCoordinates = formatDMS(siteLat, "N", "S") + " " + formatDMS(siteLon, "E", "W")
+
+// formatDMS turns a signed decimal degree into e.g. 33°52′12″S.
+func formatDMS(deg float64, pos, neg string) string {
+	hemi := pos
+	if deg < 0 {
+		hemi = neg
+		deg = -deg
+	}
+	d := int(deg)
+	minFloat := (deg - float64(d)) * 60
+	m := int(minFloat)
+	s := int(math.Round((minFloat - float64(m)) * 60))
+	if s == 60 {
+		s = 0
+		m++
+	}
+	if m == 60 {
+		m = 0
+		d++
+	}
+	return fmt.Sprintf("%d°%02d′%02d″%s", d, m, s, hemi)
+}
 
 // processStart is set once, at binary startup, for the uptime readout.
 var processStart = time.Now()

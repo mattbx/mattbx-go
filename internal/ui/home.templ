@@ -6,7 +6,7 @@ templ Home(p Page, posts []*db.Post) {
 	@Layout(p) {
 		<div class={ classPageHead }>
 			<h1 class="font-mono font-normal text-display mbe-0 tracking-wide uppercase text-fg">{ SiteName }</h1>
-			<p class="mt-2 font-mono uppercase tracking-wide text-fg text-display max-w-2/3 leading-tight">{ SiteTagline }</p>
+			<p class="mt-2 font-mono uppercase tracking-wide text-fg text-display lg:max-w-2/3 leading-tight">{ SiteTagline }</p>
 		</div>
 		if len(posts) > 0 {
 			<section aria-labelledby="recent">

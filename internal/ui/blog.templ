@@ -20,21 +20,26 @@ templ BlogIndex(p Page, posts []*db.Post) {
 	}
 }
 
-// One ledger row.
+// One ledger row — whole row is the post link; each cell fills on its own.
 templ postEntry(post *db.Post) {
-	<li class="entry hover-fill">
-		<div class="entry__meta">
-			<time datetime={ machineDate(post.Date()) }>{ railDate(post.Date()) }</time>
-			if !post.Published {
-				<span class={ classBadge, "text-dim" }>draft</span>
-			}
-		</div>
-		<div>
+	<li class="entry">
+		<a class="entry__link hover-fill-group" href={ templ.SafeURL("/blog/" + post.Slug) }>
+			<span class="entry__meta">
+				<span class="hover-fill">
+					<time datetime={ machineDate(post.Date()) }>{ railDate(post.Date()) }</time>
+					if !post.Published {
+						{ " " }
+						<span class={ classBadge, "text-dim" }>draft</span>
+					}
+				</span>
+			</span>
 			<h2 class="entry__title">
-				<a href={ templ.SafeURL("/blog/" + post.Slug) }>{ DisplayTitle(post) }</a>
+				<span class="hover-fill">{ DisplayTitle(post) }</span>
 			</h2>
-		</div>
-		<div class="entry__date">{ post.Date().Year() }</div>
+			<span class="entry__date">
+				<span class="hover-fill">{ post.Date().Year() }</span>
+			</span>
+		</a>
 	</li>
 }
 

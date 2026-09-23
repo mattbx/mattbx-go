@@ -78,27 +78,6 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 .admin-bar a { color: var(--color-dim); text-decoration: none; }
 .admin-bar a:hover { color: var(--color-fg); opacity: 1; }
 
-/* Fixed chrome stack: admin bar (if any) then site header. */
-.admin-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-}
-.site-header {
-  top: 0;
-}
-body.is-admin {
-  --admin-bar-h: 2.75rem;
-}
-body.is-admin .site-header {
-  top: var(--admin-bar-h);
-}
-body.is-admin #main {
-  padding-top: calc(6rem + var(--admin-bar-h));
-}
-
 /* Underline: enter LTR, exit RTL. ::before avoids .is-locked's "*". */
 .hover-underline {
   position: relative;
@@ -122,13 +101,18 @@ body.is-admin #main {
   transform-origin: left center;
 }
 
-/* hover-fill: keyframed fg wipe + page text. Override --hover-fill-*.
-   Rest at scaleX(0) with no animation so load doesn't play hover-fill-out. */
+/* hover-fill: keyframed fg wipe + page text per cell. Override --hover-fill-*.
+   Fill-in on hover; fill-out on leave once .hover-fill-group.is-armed (set by
+   terminal.js) so load does not play out. 0.5s so fast sweeps still overlap. */
 .hover-fill {
   --hover-fill-bg: var(--color-fg);
   --hover-fill-fg: var(--color-page);
+  --hover-fill-dur: 0.5s;
   position: relative;
   z-index: 0;
+  display: inline-block;
+  max-width: 100%;
+  color: var(--color-fg);
 }
 .hover-fill::before {
   content: "";
@@ -139,16 +123,39 @@ body.is-admin #main {
   transform: scaleX(0);
   transform-origin: left center;
 }
-.hover-fill:is(:hover, :focus-within)::before {
-  animation: hover-fill-in var(--dur-fill) var(--ease-wipe) forwards;
+.hover-fill:is(:hover, :focus-within)::before,
+.hover-fill-group:is(:hover, :focus-within) .hover-fill::before {
+  animation: hover-fill-in var(--hover-fill-dur) var(--ease-wipe) forwards;
+}
+.hover-fill-group.is-armed:not(:hover):not(:focus-within) .hover-fill::before {
+  animation: hover-fill-out var(--hover-fill-dur) var(--ease-wipe) forwards;
+}
+.hover-fill:is(:hover, :focus-within),
+.hover-fill-group:is(:hover, :focus-within) .hover-fill {
+  animation: hover-fill-text-in var(--hover-fill-dur) ease forwards;
+}
+.hover-fill-group.is-armed:not(:hover):not(:focus-within) .hover-fill {
+  animation: hover-fill-text-out var(--hover-fill-dur) ease forwards;
+}
+.hover-fill:is(:hover, :focus-within) :where(*),
+.hover-fill-group:is(:hover, :focus-within) .hover-fill :where(*) {
+  color: inherit;
 }
 @keyframes hover-fill-in {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
-.hover-fill:is(:hover, :focus-within),
-.hover-fill:is(:hover, :focus-within) :where(*) {
-  color: var(--hover-fill-fg);
+@keyframes hover-fill-out {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+@keyframes hover-fill-text-in {
+  from { color: var(--color-fg); }
+  to { color: var(--hover-fill-fg); }
+}
+@keyframes hover-fill-text-out {
+  from { color: var(--hover-fill-fg); }
+  to { color: var(--color-fg); }
 }
 
 [data-magnetic] {
@@ -158,11 +165,23 @@ body.is-admin #main {
 
 @media (prefers-reduced-motion: reduce) {
   .hover-underline::before { transition: none; }
-  .hover-fill::before {
+  .hover-fill,
+  .hover-fill-group.is-armed:not(:hover):not(:focus-within) .hover-fill {
+    animation: none;
+    color: var(--color-fg);
+  }
+  .hover-fill::before,
+  .hover-fill-group.is-armed:not(:hover):not(:focus-within) .hover-fill::before {
     animation: none;
     transform: scaleX(0);
   }
-  .hover-fill:is(:hover, :focus-within)::before {
+  .hover-fill:is(:hover, :focus-within),
+  .hover-fill-group:is(:hover, :focus-within) .hover-fill {
+    animation: none;
+    color: var(--hover-fill-fg);
+  }
+  .hover-fill:is(:hover, :focus-within)::before,
+  .hover-fill-group:is(:hover, :focus-within) .hover-fill::before {
     transform: scaleX(1);
   }
 }
@@ -237,18 +256,23 @@ body.is-admin #main {
   gap: var(--spacing-col);
 }
 
-.entry a {
+.entry__link {
   display: flex;
-  align-items: center;
+  flex: 1 1 auto;
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--spacing-col);
+  min-width: 0;
   text-decoration: none;
   color: var(--color-fg);
 }
+.entry__link:hover { opacity: 1; }
 
 .entry__meta {
   flex: 0 0 24vw;
   max-width: 24vw;
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
+  font-size: var(--text-nav);
+  line-height: var(--text-nav--line-height);
   font-family: var(--font-mono);
   text-transform: uppercase;
   font-weight: normal;
@@ -258,8 +282,8 @@ body.is-admin #main {
   flex: 1 1 auto;
   min-width: 0;
   margin-block: 0;
-  font-size: var(--text-title);
-  line-height: var(--text-title--line-height);
+  font-size: var(--text-nav);
+  line-height: var(--text-nav--line-height);
   font-family: var(--font-mono);
   text-transform: uppercase;
   font-weight: normal;
@@ -268,15 +292,29 @@ body.is-admin #main {
 .entry__date {
   flex: 0 0 auto;
   margin-inline-start: auto;
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
+  font-size: var(--text-nav);
+  line-height: var(--text-nav--line-height);
   font-family: var(--font-mono);
   text-transform: uppercase;
   font-weight: normal;
 }
 
+.entry__links {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  text-transform: uppercase;
+}
+
+.entry__links a {
+  color: var(--color-dim);
+  text-decoration: none;
+}
+.entry__links a:hover { color: var(--color-fg); opacity: 1; }
+
 @media (max-width: 46rem) {
-  .entry { flex-wrap: wrap; gap: var(--space-2); }
+  .entry,
+  .entry__link { flex-wrap: wrap; gap: var(--space-2); }
   .entry__meta { flex: 1 1 100%; max-width: none; }
   .entry__title { flex: 1 1 auto; }
   .entry__date { flex: 0 0 auto; }

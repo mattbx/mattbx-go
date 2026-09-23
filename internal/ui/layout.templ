@@ -35,6 +35,8 @@ templ Layout(p Page) {
 			<header class="site-header py-4 fixed left-0 right-0 z-10">
 				<div class="max-w-site w-full mx-auto px-gutter flex items-center justify-between">
 					<a class="wordmark font-ui text-nav tracking-tight font-semibold text-fg no-underline" href="/">{ SiteMark }</a>
+					<div class="hidden md:block">@MetaClock()</div>
+					
 					<nav class="nav font-mono uppercase text-nav text-fg flex gap-6" aria-label="Primary">
 						<a class="hover-underline" data-scramble="link" href="/blog" { current(p.Nav == "blog")... }>Posts</a>
 						<a class="hover-underline" data-scramble="link" href="/about" { current(p.Nav == "about")... }>About</a>
@@ -42,7 +44,7 @@ templ Layout(p Page) {
 					</nav>
 				</div>
 			</header>
-			<main class="flex-1 pt-24 flex flex-col h-full max-w-site w-full mx-auto px-gutter" id="main">
+			<main class="flex-1 pt-24 md:pt-32 lg:pt-40 flex flex-col h-full max-w-site w-full mx-auto px-gutter" id="main">
 				{ children... }
 			</main>
 			<footer class="mt-24 max-w-site px-gutter mx-auto pt-6 pb-6 font-mono uppercase text-nav text-dim flex flex-wrap gap-6 justify-between">

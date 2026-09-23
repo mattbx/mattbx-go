@@ -24,31 +24,38 @@ templ PortfolioIndex(p Page, projects []*db.Project) {
 }
 
 templ projectEntry(project *db.Project) {
-	<li class="entry hover-fill">
-		<div class="entry__meta">
-			if project.Role != "" {
-				<span>{ project.Role }</span>
-			}
-			<time datetime={ machineDate(project.CreatedAt) }>{ project.CreatedAt.Format("2006") }</time>
-			if !project.Published {
-				<span class={ classBadge, "text-dim" }>draft</span>
-			}
-		</div>
-		<div>
+	<li class="entry">
+		<a class="entry__link hover-fill-group" href={ templ.SafeURL("/portfolio/" + project.Slug) }>
+			<span class="entry__meta">
+				<span class="hover-fill">
+					if project.Role != "" {
+						<span>{ project.Role }</span>
+						{ " " }
+					}
+					<time datetime={ machineDate(project.CreatedAt) }>{ project.CreatedAt.Format("2006") }</time>
+					if !project.Published {
+						{ " " }
+						<span class={ classBadge, "text-dim" }>draft</span>
+					}
+				</span>
+			</span>
 			<h2 class="entry__title">
-				<a href={ templ.SafeURL("/portfolio/" + project.Slug) }>{ project.Title }</a>
+				<span class="hover-fill">{ project.Title }</span>
 			</h2>
-			if hasLinks(project) {
-				<div class="entry__links">
+		</a>
+		if hasLinks(project) {
+			<div class="entry__links">
+				if project.LinkURL != "" {
+					<a href={ templ.SafeURL(project.LinkURL) } rel="noopener noreferrer" target="_blank">Live ↗</a>
+				}
+				if project.RepoURL != "" {
 					if project.LinkURL != "" {
-						<a href={ templ.SafeURL(project.LinkURL) } rel="noopener noreferrer" target="_blank">Live ↗</a>
+						{ " · " }
 					}
-					if project.RepoURL != "" {
-						<a href={ templ.SafeURL(project.RepoURL) } rel="noopener noreferrer" target="_blank">Source ↗</a>
-					}
-				</div>
-			}
-		</div>
+					<a href={ templ.SafeURL(project.RepoURL) } rel="noopener noreferrer" target="_blank">Source ↗</a>
+				}
+			</div>
+		}
 	</li>
 }
 

@@ -1,0 +1,40 @@
+/* Self-hosted fonts. The CSP only allows fonts from this origin, so Google
+   Fonts links will not load; the files live in ../static/fonts and are fetched
+   by scripts/fetch-fonts.sh. Latin subsets only, so glyphs outside that range
+   (box drawing, block elements, most arrows) fall back to the next family in
+   the stack. Check that coverage before settling on a terminal face.
+
+   Only OFL fonts belong here. Trial or commercial faces are installed on the
+   local machine and named in front of the stack in input.css instead. */
+
+@font-face {
+  font-family: "Victor Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/static/fonts/victor-mono-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Victor Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/static/fonts/victor-mono-latin-700-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/static/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/static/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2");
+}

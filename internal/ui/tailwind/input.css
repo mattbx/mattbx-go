@@ -20,6 +20,57 @@
 
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities) source(none);
+@import "./fonts.css";
 
 @source "../*.templ";
 @source "../static/terminal.js";
+
+/* Design tokens. `static` emits every variable even when no utility uses it,
+   so hand-written CSS (main.css, the CRT layer) can read them with var().
+
+   Colors live here and only here. main.css consumes --color-* via var(); it
+   must not redefine them on :root. Light values are the @theme defaults;
+   dark overrides the plain CSS variables under @layer theme (Tailwind
+   rejects nesting @theme inside @media).
+
+   --font-mono is the one place the terminal face is chosen. To try a face
+   locally, install it on your machine and put its name first in the list. It
+   only renders for you, and nothing licensed reaches the repo. main.css no
+   longer defines --font-mono, because an unlayered definition there would
+   beat this one.
+
+   CRT primitives (void, panel, phosphor, phosphor-dim) stay addressable by
+   name for the effect layer; dark semantic tokens reference them with var(). */
+@theme static {
+  --font-mono: "Thermal", "Victor Mono", "JetBrains Mono", ui-monospace, "SF Mono",
+    SFMono-Regular, "Cascadia Mono", Menlo, Consolas, monospace;
+
+  /* Semantic site palette — light defaults. */
+  --color-paper: #fcfcfa;
+  --color-ink: #1a2024;
+  --color-muted: #6b7378;
+  --color-accent: #27886c;
+  --color-warning: #ff8b00;
+  --color-danger: #a33a2b;
+  --color-surface: #f3f3ef;
+
+  /* CRT primitives — source values for dark overrides and future effects. */
+  --color-void: #010305;
+  --color-panel: #03070a;
+  --color-phosphor: #3ee9b7;
+  --color-phosphor-dim: #27886c;
+}
+
+@media (prefers-color-scheme: dark) {
+  @layer theme {
+    :root {
+      --color-paper: var(--color-void);
+      --color-ink: var(--color-phosphor);
+      --color-muted: #9aa39c;
+      --color-accent: var(--color-phosphor-dim);
+      --color-warning: #d69a4e;
+      --color-danger: #e08272;
+      --color-surface: var(--color-panel);
+    }
+  }
+}

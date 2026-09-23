@@ -22,6 +22,7 @@ LEARNINGS.md
 CLAUDE.local.md
 DEPLOY.local.md
 disco-llms-reference.txt
+.cursor/
 
 # macOS
 .DS_Store

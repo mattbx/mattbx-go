@@ -1,0 +1,88 @@
+package ui
+
+import (
+	"strings"
+	"time"
+)
+
+// meta.templ holds the small self-describing readouts, styled the way
+// Outline's reference does it ("Local Time: 15:54"). Each one is meant to be
+// droppable on its own wherever it earns a place — MetaRow below is just one
+// arrangement (the colophon's), not the only one.
+
+// metaField is the shared shape: a muted caps label and a value. It carries
+// its own font and case so a piece still reads correctly if it's ever placed
+// somewhere without the colophon's uppercase mono context around it.
+templ metaField(label string) {
+	<span class="inline-flex items-baseline gap-2 font-mono text-xs uppercase tracking-wide whitespace-nowrap">
+		<span class="text-muted">{ label }:</span>
+		{ children... }
+	</span>
+}
+
+// MetaClock shows the site's own clock — Sydney time, not the visitor's.
+// terminal.js ticks it client-side from data-tz; without JS it holds the
+// value rendered at request time.
+templ MetaClock() {
+	@metaField("Local Time") {
+		<time class="text-ink" data-meta="clock" data-tz={ SiteTimeZone } datetime={ localDateTime(time.Now()) }>
+			{ localTime(time.Now()) }
+		</time>
+	}
+}
+
+// MetaCoordinates is a rounded, city-level lon/lat, not a precise location.
+templ MetaCoordinates() {
+	@metaField("Coordinates") {
+		<span class="text-ink">{ SiteCoordinates }</span>
+	}
+}
+
+// MetaOffsets lists a few zones' current UTC offset, computed live so it
+// stays correct across daylight saving changes.
+templ MetaOffsets() {
+	@metaField("Global") {
+		<span class="text-ink">{ strings.Join(offsetLabels(), ", ") }</span>
+	}
+}
+
+// MetaUptime shows how long this process has been running. terminal.js ticks
+// it client-side from data-started; without JS it holds the render-time
+// value.
+templ MetaUptime() {
+	@metaField("Uptime") {
+		<span class="text-ink" data-meta="uptime" data-started={ processStartUnix() }>
+			{ uptimeLabel() }
+		</span>
+	}
+}
+
+// MetaBuild reports when this image was built. See internal/build and the
+// Dockerfile's ldflags.
+templ MetaBuild() {
+	@metaField("Build") {
+		<span class="text-ink">{ buildLabel() }</span>
+	}
+}
+
+// MetaScreenTime is pure client state, how long this tab has been open. No
+// server data at all — terminal.js starts it at 00:00 on load.
+templ MetaScreenTime() {
+	@metaField("Screen Time") {
+		<span class="text-ink" data-meta="screentime">00:00</span>
+	}
+}
+
+// MetaRow is one arrangement of the pieces above: a flex-wrap row, edges
+// pushed apart. It's a convenience for wherever the whole set belongs
+// together (currently the colophon) — not the only way to use them.
+templ MetaRow() {
+	<div class="flex flex-wrap justify-between gap-x-6 gap-y-2 w-full">
+		@MetaClock()
+		@MetaCoordinates()
+		@MetaOffsets()
+		@MetaUptime()
+		@MetaBuild()
+		@MetaScreenTime()
+	</div>
+}

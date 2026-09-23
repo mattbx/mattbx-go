@@ -12,10 +12,10 @@ import (
 
 // Edit these in one place to rebrand the site.
 const (
-	SiteName    = "Matt Barron"
-	SiteMark    = "mattbx"
-	SiteRole    = "Designer & Developer"
-	SiteTagline = "Designing and building digital products."
+	SiteName    = "Hi there, I'm Matt."
+	SiteMark    = "Mbx"
+	SiteRole    = "UI/UX Engineer"
+	SiteTagline = "I design and build digital products and things with my dog Pippi, in Sydney AU.*Available for work opportunities and tacos.*This is mostly placeholder content for now until I have something to say."
 )
 
 // Page carries the per-request context the shell needs. Handlers build one and

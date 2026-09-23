@@ -6,7 +6,7 @@ templ BlogIndex(p Page, posts []*db.Post) {
 	@Layout(p) {
 		<div class="page-head">
 			<p class="eyebrow">{ postCount(len(posts), "post", "posts") }</p>
-			<h1 class="page-title">Posts</h1>
+			<h1 class="page-title font-ui text-lg! font-semibold tracking-tight text-ink">Posts</h1>
 		</div>
 		if len(posts) == 0 {
 			<p class="empty">Nothing published yet.</p>

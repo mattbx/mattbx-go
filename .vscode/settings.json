@@ -1,0 +1,12 @@
+{
+  "tailwindCSS.includeLanguages": {
+    "templ": "html"
+  },
+  "tailwindCSS.experimental.configFile": "internal/ui/tailwind/input.css",
+  "emmet.includeLanguages": {
+    "templ": "html"
+  },
+  "editor.quickSuggestions": {
+    "strings": "on"
+  }
+}

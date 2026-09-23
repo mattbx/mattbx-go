@@ -54,12 +54,21 @@ These will break the deploy if violated:
   at request time.
 - `*_templ.go` is gitignored. Generated fresh by `scripts/local.sh` and the
   Dockerfile.
-- Legacy CSS is hand-written and token-driven (`internal/ui/static/main.css`). Define
-  colors on bare `:root`; the dark block only swaps values. Tailwind v4
-  (`internal/ui/tailwind/input.css`) is being adopted page by page. Preflight
-  is deliberately not imported yet, and because `main.css` is unlayered it
-  beats every utility, so delete a template's legacy rules when it moves to
+- **Colors live in `internal/ui/tailwind/input.css`.** Define semantic
+  `--color-*` tokens in `@theme static` (light defaults); dark overrides the
+  plain CSS variables under `@layer theme` inside `@media (prefers-color-scheme:
+  dark)` — Tailwind rejects nesting `@theme` inside `@media`. `main.css`
+  consumes those variables with `var()` and must not redefine colors on
+  `:root`. Spacing, type scale, and layout tokens still live in `main.css`
+  until they migrate. Tailwind v4 is adopted page by page; Preflight is
+  deliberately not imported yet, and because `main.css` is unlayered it beats
+  every utility, so delete a template's legacy rules when it moves to
   utilities.
+- **`chroma.css` is syntax highlighting only.** Generated from Chroma's
+  `github` / `github-dark` styles by `go generate ./internal/ui/...`. It is a
+  separate palette from the site tokens; do not fold it into `@theme`. Code
+  block backgrounds are overridden in `main.css` via `.prose pre.chroma` to
+  `--color-surface`.
 - **The CSP is `script-src 'self'` in production only.** Inline scripts and
   inline `style=""` attributes are blocked there, and development sends no CSP
   (Air injects an inline reload script), so an effect can work locally and fail

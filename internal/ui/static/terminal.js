@@ -168,9 +168,101 @@ function initHoverFillArm() {
   });
 }
 
+// Film grain: pre-baked tiles, low fps. Tuned via --grain-* on :root.
+function grainConfig() {
+  const s = getComputedStyle(document.documentElement);
+  const num = (name, fallback) => {
+    const v = parseFloat(s.getPropertyValue(name));
+    return Number.isFinite(v) ? v : fallback;
+  };
+  return {
+    density: num("--grain-density", 0.14),
+    scale: num("--grain-scale", 1.4),
+    fps: num("--grain-fps", 12),
+    tiles: Math.max(1, Math.round(num("--grain-tiles", 6))),
+  };
+}
+
+function bakeGrainPatterns(ctx, tiles, density) {
+  const patterns = [];
+  for (let i = 0; i < tiles; i++) {
+    const tile = document.createElement("canvas");
+    tile.width = tile.height = 256;
+    const tctx = tile.getContext("2d", { willReadFrequently: true });
+    const img = tctx.createImageData(256, 256);
+    const buf = new Uint32Array(img.data.buffer);
+    // Transparent base + opaque black speckles (blend/opacity from CSS).
+    buf.fill(0x00000000);
+    for (let p = 0; p < buf.length; p++) {
+      if (Math.random() < density) buf[p] = 0xff000000;
+    }
+    tctx.putImageData(img, 0, 0);
+    patterns.push(ctx.createPattern(tile, "repeat"));
+  }
+  return patterns;
+}
+
+function initGrain() {
+  const canvas = document.querySelector("canvas.grain");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let patterns = [];
+  let frame = 0;
+  let timer = 0;
+  let scale = 1.4;
+
+  const resize = () => {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.floor(innerWidth * dpr);
+    canvas.height = Math.floor(innerHeight * dpr);
+  };
+
+  const paint = () => {
+    if (!patterns.length) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.scale(scale, scale);
+    ctx.fillStyle = patterns[frame % patterns.length];
+    ctx.fillRect(0, 0, canvas.width / scale, canvas.height / scale);
+    ctx.restore();
+  };
+
+  const rebuild = () => {
+    const cfg = grainConfig();
+    scale = cfg.scale;
+    patterns = bakeGrainPatterns(ctx, cfg.tiles, cfg.density);
+    frame = 0;
+    paint();
+    clearTimeout(timer);
+    if (reduce.matches) return;
+    const interval = 1000 / cfg.fps;
+    const tick = () => {
+      if (document.visibilityState !== "hidden") {
+        paint();
+        frame++;
+      }
+      timer = setTimeout(tick, interval);
+    };
+    timer = setTimeout(tick, interval);
+  };
+
+  resize();
+  rebuild();
+  window.addEventListener("resize", () => {
+    resize();
+    paint();
+  });
+  reduce.addEventListener("change", rebuild);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", rebuild);
+}
+
 tickClocks();
 tickUptime();
 tickScreenTime();
 initScramble();
 initMagnetic();
 initHoverFillArm();
+initGrain();

@@ -61,9 +61,11 @@ These will break the deploy if violated:
   phosphor dark), `--color-dim` (meta/secondary), `--color-line` (hairlines),
   `--color-surface` (sunk panels), `--color-danger` (destructive admin only).
   CRT source values (`--crt-void`, `--crt-phosphor`, …) stay outside `@theme`
-  for the overlay layer. Fluid type tokens (`--text-hero` … `--text-micro`)
-  and gutters (`--spacing-gutter`, `--spacing-col`) use clamp/vw on a 1280
-  design frame. Font stacks: `--font-ui` / `--font-prose` / `--font-mono`.
+  for the overlay layer.   Fluid type tokens (`--text-hero` … `--text-micro`) and gutters
+  (`--spacing-gutter`, `--spacing-col`) are clamp/vw; tune via `:root`
+  knobs `--fluid-frame` / `--fluid-scale` and per-step `--fluid-*-min|at|max`
+  (preferred size in px at the design frame — no hand calc). Font stacks:
+  `--font-ui` / `--font-prose` / `--font-mono`.
   `main.css` consumes with `var()` and must not redefine these on `:root`.
   Tailwind v4 is hybrid: shell/page chrome are utilities; prose, leaf/rail,
   ledger, forms, and gate stay in `main.css` until further migration. Preflight
@@ -71,8 +73,10 @@ These will break the deploy if violated:
   rules when moving to utilities, never paper over with `!`. Shared utility
   clusters in `internal/ui/classes.go` must stay in `@source`. Opt-in motion:
   `.hover-underline`, `.hover-fill` (fg/page invert), `data-scramble`,
-  `data-magnetic`, CRT overlay — class/`data-*` gated, not global. Motion
-  timings: `--ease-wipe`, `--ease-underline`, `--dur-fast`, `--dur-fill`.
+  `data-magnetic`, CRT overlay — class/`data-*` gated, not global. Site-wide
+  film grain is `canvas.grain` + `terminal.js`, tuned via `:root` `--grain-*`
+  (opacity/blend/density/scale/fps; light + dark defaults). Motion timings:
+  `--ease-wipe`, `--ease-underline`, `--dur-fast`, `--dur-fill`.
 - **`chroma.css` is syntax highlighting only.** Generated from Chroma's
   `github` / `github-dark` styles by `go generate ./internal/ui/...`. It is a
   separate palette from the site tokens; do not fold it into `@theme`. Code

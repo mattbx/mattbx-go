@@ -28,6 +28,7 @@ templ Layout(p Page) {
 			<script src={ static.URL("terminal.js") } defer></script>
 		</head>
 		<body class={ bodyClass(p) }>
+			<canvas class="grain" aria-hidden="true"></canvas>
 			<a class={ classSkipLink } href="#main">Skip to content</a>
 			if p.IsAdmin {
 				@adminBar()

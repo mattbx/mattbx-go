@@ -72,10 +72,10 @@ img { max-width: 100%; height: auto; }
 }
 
 /* Unlayered `a` is fg; keep footer/admin dim. */
-footer a { color: var(--color-dim); }
+footer a { color: var(--color-fg); }
 footer a:hover { color: var(--color-fg); opacity: 1; }
 
-.admin-bar a { color: var(--color-dim); text-decoration: none; }
+.admin-bar a { color: var(--color-fg); text-decoration: none; }
 .admin-bar a:hover { color: var(--color-fg); opacity: 1; }
 
 /* Underline: enter LTR, exit RTL. ::before avoids .is-locked's "*". */

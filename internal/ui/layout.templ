@@ -47,7 +47,7 @@ templ Layout(p Page) {
 			<main class="flex-1 pt-24 md:pt-32 lg:pt-40 flex flex-col h-full max-w-site w-full mx-auto px-gutter" id="main">
 				{ children... }
 			</main>
-			<footer class="mt-24 max-w-site px-gutter mx-auto pt-6 pb-6 font-mono uppercase text-nav text-dim flex flex-wrap gap-6 justify-between">
+			<footer class="mt-24 max-w-site px-gutter mx-auto pt-6 pb-6 font-mono uppercase text-nav flex flex-wrap gap-6 justify-between">
 				<span>© { p.Year() } { SiteName }</span>
 				<span>
 					<a class="hover-underline" data-scramble="link" href="/feed.xml">Atom feed</a>

@@ -13,11 +13,51 @@
 @source "../classes.go";
 @source "../static/terminal.js";
 
+/* Fluid knobs (not theme utilities — edit these, not the clamps).
+   --fluid-frame: design width in px. Preferred size equals --*-at at that width.
+   --fluid-scale: global multiplier on every preferred/vw term (try 0.9 / 1.1).
+   Per step: --fluid-*-min (rem floor), --fluid-*-at (px at frame), --fluid-*-max (rem ceiling). */
+:root {
+  --fluid-frame: 1280;
+  --fluid-scale: 0.8;
+
+  --fluid-hero-min: 2.5rem;
+  --fluid-hero-at: 124;
+  --fluid-hero-max: 4.625rem;
+
+  --fluid-display-min: 1.25rem;
+  --fluid-display-at: 32;
+  --fluid-display-max: 3rem;
+
+  --fluid-nav-min: 1.125rem;
+  --fluid-nav-at: 20;
+  --fluid-nav-max: 1.875rem;
+
+  --fluid-title-min: 1rem;
+  --fluid-title-at: 16;
+  --fluid-title-max: 1.5rem;
+
+  --fluid-meta-min: 0.875rem;
+  --fluid-meta-at: 14;
+  --fluid-meta-max: 1.3125rem;
+
+  --fluid-micro-min: 0.75rem;
+  --fluid-micro-at: 11;
+  --fluid-micro-max: 1.03rem;
+
+  --fluid-col-at: 20;
+
+  --crt-void: #010305;
+  --crt-panel: #03070a;
+  --crt-phosphor: #3ee9b7;
+  --crt-phosphor-dim: #27886c;
+}
+
 /* Tokens: @theme static so main.css / CRT can var() them even unused.
    Dark overrides plain CSS vars under @layer theme (no nested @theme).
    --font-mono: put a local face first to preview without committing licenses. */
 @theme static {
-  --font-mono: "Thermal", "Victor Mono", "JetBrains Mono", ui-monospace, "SF Mono",
+  --font-mono: "Glass TTY VT220", "Victor Mono", "JetBrains Mono", ui-monospace, "SF Mono",
     SFMono-Regular, "Cascadia Mono", Menlo, Consolas, monospace;
   --font-ui: ui-sans-serif, "PP Mori", -apple-system, BlinkMacSystemFont, "Segoe UI",
     Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -26,28 +66,52 @@
 
   --container-site: 96rem;
 
-  /* Fluid type: 1280 design frame; rem floors keep zoom working. */
-  --text-hero: clamp(2.5rem, calc(124 / 1280 * 100vw), 4.625rem);
+  /* Fluid type — tweak :root --fluid-* knobs above; formula stays here. */
+  --text-hero: clamp(
+    var(--fluid-hero-min),
+    calc(var(--fluid-hero-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
+    var(--fluid-hero-max)
+  );
   --text-hero--line-height: 0.9;
   --text-hero--letter-spacing: -0.05em;
 
-  --text-display: clamp(1.25rem, calc(32 / 1280 * 100vw), 3rem);
+  --text-display: clamp(
+    var(--fluid-display-min),
+    calc(var(--fluid-display-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
+    var(--fluid-display-max)
+  );
   --text-display--line-height: 1;
 
-  --text-nav: clamp(1.125rem, calc(20 / 1280 * 100vw), 1.875rem);
+  --text-nav: clamp(
+    var(--fluid-nav-min),
+    calc(var(--fluid-nav-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
+    var(--fluid-nav-max)
+  );
   --text-nav--line-height: 1;
 
-  --text-title: clamp(1rem, calc(16 / 1280 * 100vw), 1.5rem);
+  --text-title: clamp(
+    var(--fluid-title-min),
+    calc(var(--fluid-title-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
+    var(--fluid-title-max)
+  );
   --text-title--line-height: 1;
 
-  --text-meta: clamp(0.875rem, calc(14 / 1280 * 100vw), 1.3125rem);
+  --text-meta: clamp(
+    var(--fluid-meta-min),
+    calc(var(--fluid-meta-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
+    var(--fluid-meta-max)
+  );
   --text-meta--line-height: 1.15;
 
-  --text-micro: clamp(0.75rem, calc(11 / 1280 * 100vw), 1.03rem);
+  --text-micro: clamp(
+    var(--fluid-micro-min),
+    calc(var(--fluid-micro-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
+    var(--fluid-micro-max)
+  );
   --text-micro--line-height: 1.1;
 
   --spacing-gutter: 1.5rem;
-  --spacing-col: calc(20 / 1280 * 100vw);
+  --spacing-col: calc(var(--fluid-col-at) / var(--fluid-frame) * 100vw * var(--fluid-scale));
 
   /* page / fg / dim / line / surface / danger — light defaults. */
   --color-page: #fcfcfa;
@@ -61,14 +125,6 @@
   --ease-underline: cubic-bezier(0.65, 0.05, 0.36, 1);
   --dur-fast: 200ms;
   --dur-fill: 300ms;
-}
-
-/* CRT sources (not utilities). Dark page/fg resolve through these. */
-:root {
-  --crt-void: #010305;
-  --crt-panel: #03070a;
-  --crt-phosphor: #3ee9b7;
-  --crt-phosphor-dim: #27886c;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -1,0 +1,14 @@
+package ui
+
+// Viewport registration marks — four corners + top/bottom centres.
+// Scroll state (html.is-top / is-scrolling) drives centre arm length in CSS.
+templ CornerCrosses() {
+	<div class="corners" aria-hidden="true">
+		<span class="corners__cross corners__cross--tl"></span>
+		<span class="corners__cross corners__cross--tc"></span>
+		<span class="corners__cross corners__cross--tr"></span>
+		<span class="corners__cross corners__cross--bl"></span>
+		<span class="corners__cross corners__cross--bc"></span>
+		<span class="corners__cross corners__cross--br"></span>
+	</div>
+}

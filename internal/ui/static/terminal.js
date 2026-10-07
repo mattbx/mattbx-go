@@ -205,19 +205,29 @@ function bakeGrainPatterns(ctx, tiles, density) {
 function initGrain() {
   const canvas = document.querySelector("canvas.grain");
   if (!canvas) return;
+  // Tear down a prior loop (Air reload / bfcache) before starting another.
+  if (typeof canvas._grainStop === "function") canvas._grainStop();
+
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const scheme = window.matchMedia("(prefers-color-scheme: dark)");
   let patterns = [];
   let frame = 0;
   let timer = 0;
   let scale = 1.4;
 
+  // clientWidth/Height exclude the scrollbar — innerWidth leaves a bare strip on Windows.
   const resize = () => {
+    const root = document.documentElement;
+    const w = root.clientWidth;
+    const h = root.clientHeight;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    canvas.width = Math.floor(innerWidth * dpr);
-    canvas.height = Math.floor(innerHeight * dpr);
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
   };
 
   const paint = () => {
@@ -230,13 +240,18 @@ function initGrain() {
     ctx.restore();
   };
 
+  const stopLoop = () => {
+    clearTimeout(timer);
+    timer = 0;
+  };
+
   const rebuild = () => {
     const cfg = grainConfig();
     scale = cfg.scale;
     patterns = bakeGrainPatterns(ctx, cfg.tiles, cfg.density);
     frame = 0;
     paint();
-    clearTimeout(timer);
+    stopLoop();
     if (reduce.matches) return;
     const interval = 1000 / cfg.fps;
     const tick = () => {
@@ -249,14 +264,57 @@ function initGrain() {
     timer = setTimeout(tick, interval);
   };
 
-  resize();
-  rebuild();
-  window.addEventListener("resize", () => {
+  const onResize = () => {
     resize();
     paint();
-  });
+  };
+
+  const stop = () => {
+    stopLoop();
+    window.removeEventListener("resize", onResize);
+    reduce.removeEventListener("change", rebuild);
+    scheme.removeEventListener("change", rebuild);
+    window.removeEventListener("pagehide", stop);
+    canvas._grainStop = null;
+  };
+
+  canvas._grainStop = stop;
+  resize();
+  rebuild();
+  window.addEventListener("resize", onResize);
   reduce.addEventListener("change", rebuild);
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", rebuild);
+  scheme.addEventListener("change", rebuild);
+  // Full navigations kill timers anyway; pagehide covers bfcache + hot reload.
+  window.addEventListener("pagehide", stop);
+}
+
+// Corner crosses: toggle html.is-top / is-scrolling for centre-arm CSS.
+function initCornerCrosses() {
+  if (!document.querySelector(".corners")) return;
+  const root = document.documentElement;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let idle = 0;
+
+  const markTop = () => root.classList.toggle("is-top", window.scrollY < 4);
+
+  const onScroll = () => {
+    markTop();
+    if (reduced.matches) return;
+    root.classList.add("is-scrolling");
+    clearTimeout(idle);
+    idle = setTimeout(() => root.classList.remove("is-scrolling"), 140);
+  };
+
+  const stop = () => {
+    window.removeEventListener("scroll", onScroll);
+    window.removeEventListener("pagehide", stop);
+    clearTimeout(idle);
+    root.classList.remove("is-scrolling", "is-top");
+  };
+
+  markTop();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("pagehide", stop);
 }
 
 tickClocks();
@@ -266,3 +324,4 @@ initScramble();
 initMagnetic();
 initHoverFillArm();
 initGrain();
+initCornerCrosses();

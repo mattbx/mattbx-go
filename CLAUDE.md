@@ -75,8 +75,9 @@ These will break the deploy if violated:
   `.hover-underline`, `.hover-fill` (fg/page invert), `data-scramble`,
   `data-magnetic`, CRT overlay — class/`data-*` gated, not global. Site-wide
   film grain is `canvas.grain` + `terminal.js`, tuned via `:root` `--grain-*`
-  (opacity/blend/density/scale/fps; light + dark defaults). Motion timings:
-  `--ease-wipe`, `--ease-underline`, `--dur-fast`, `--dur-fill`.
+  (opacity/blend/density/scale/fps; light + dark defaults). Corner crosses
+  (`@CornerCrosses()`) use `--cross-color` / `--cross-arm` / `--cross-arm-rest`.
+  Motion timings: `--ease-wipe`, `--ease-underline`, `--dur-fast`, `--dur-fill`.
 - **`chroma.css` is syntax highlighting only.** Generated from Chroma's
   `github` / `github-dark` styles by `go generate ./internal/ui/...`. It is a
   separate palette from the site tokens; do not fold it into `@theme`. Code

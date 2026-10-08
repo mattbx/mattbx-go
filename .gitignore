@@ -23,6 +23,7 @@ CLAUDE.local.md
 DEPLOY.local.md
 disco-llms-reference.txt
 .cursor/
+*-teardown.md
 
 # macOS
 .DS_Store

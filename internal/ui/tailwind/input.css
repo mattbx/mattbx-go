@@ -1,20 +1,7 @@
-/* Tailwind v4 entry point. Compiled by the standalone CLI into
-   internal/ui/static/tailwind.css (gitignored; see scripts/local.sh and the
-   Dockerfile).
-
-   Two deliberate choices while pages are migrated from main.css:
-
-   1. Preflight is not imported. Tailwind's reset would restyle the admin,
-      blog and prose pages that still rely on main.css. Import it here once
-      nothing depends on the old base styles.
-
-   2. Automatic source detection is off (source(none)). Only templates and
-      the site script are scanned, so words in docs never become utilities.
-
-   Cascade note: main.css is unlayered, and unlayered rules beat every layered
-   rule regardless of specificity. A utility therefore cannot override a
-   main.css rule on the same property. When a template moves to utilities,
-   delete the legacy class rules it used. */
+/* Tailwind v4 entry → internal/ui/static/tailwind.css (gitignored).
+   No Preflight yet (main.css still owns base). source(none) so only
+   @source paths become utilities. Unlayered main.css beats utilities —
+   delete legacy rules when moving a template, don't use !. */
 
 @layer theme, base, components, utilities;
 
@@ -23,54 +10,158 @@
 @import "./fonts.css";
 
 @source "../*.templ";
+@source "../classes.go";
 @source "../static/terminal.js";
 
-/* Design tokens. `static` emits every variable even when no utility uses it,
-   so hand-written CSS (main.css, the CRT layer) can read them with var().
+/* Fluid knobs (not theme utilities — edit these, not the clamps).
+   --fluid-frame: design width in px. Preferred size equals --*-at at that width.
+   --fluid-scale: global multiplier on every preferred/vw term (try 0.9 / 1.1).
+   Per step: --fluid-*-min (rem floor), --fluid-*-at (px at frame), --fluid-*-max (rem ceiling). */
+:root {
+  --fluid-frame: 1280;
+  --fluid-scale: 0.6;
 
-   Colors live here and only here. main.css consumes --color-* via var(); it
-   must not redefine them on :root. Light values are the @theme defaults;
-   dark overrides the plain CSS variables under @layer theme (Tailwind
-   rejects nesting @theme inside @media).
+  --fluid-hero-min: 2.5rem;
+  --fluid-hero-at: 124;
+  --fluid-hero-max: 4.625rem;
 
-   --font-mono is the one place the terminal face is chosen. To try a face
-   locally, install it on your machine and put its name first in the list. It
-   only renders for you, and nothing licensed reaches the repo. main.css no
-   longer defines --font-mono, because an unlayered definition there would
-   beat this one.
+  --fluid-display-min: 1.25rem;
+  --fluid-display-at: 28;
+  --fluid-display-max: 3rem;
 
-   CRT primitives (void, panel, phosphor, phosphor-dim) stay addressable by
-   name for the effect layer; dark semantic tokens reference them with var(). */
+  --fluid-nav-min: 1.125rem;
+  --fluid-nav-at: 12;
+  --fluid-nav-max: 1.875rem;
+
+  --fluid-title-min: 1rem;
+  --fluid-title-at: 16;
+  --fluid-title-max: 1.5rem;
+
+  --fluid-meta-min: 0.875rem;
+  --fluid-meta-at: 12;
+  --fluid-meta-max: 1.625rem;
+
+  --fluid-micro-min: 0.75rem;
+  --fluid-micro-at: 11;
+  --fluid-micro-max: 1.03rem;
+
+  --fluid-col-at: 20;
+
+  /* Grain overlay (terminal.js → canvas.grain). Density/scale/fps need a
+     reload or theme flip to rebuild tiles; opacity/blend apply live. */
+  --grain-opacity: 0.085;
+  --grain-blend: multiply;
+  --grain-density: 0.18;
+  --grain-scale: 1.1;
+  --grain-fps: 11;
+  --grain-tiles: 6;
+
+  /* Corner crosses (corners.templ). --cross-arm-rest is the mid-page size;
+     set equal to --cross-arm to disable the shrink (retract still works). */
+  --cross-color: rgb(26 32 36 / 0.2);
+  --cross-arm: 22px;
+  --cross-arm-rest: 11px;
+  --cross-inset: 10px;
+  --ease-cross: cubic-bezier(0.165, 0.84, 0.44, 1);
+
+  --crt-void: #14161b;
+  --crt-panel: #03070a;
+  --crt-phosphor: #3ee9b7;
+  --crt-phosphor-dim: #27886c;
+}
+
+/* Tokens: @theme static so main.css / CRT can var() them even unused.
+   Dark overrides plain CSS vars under @layer theme (no nested @theme).
+   --font-mono: put a local face first to preview without committing licenses. */
 @theme static {
-  --font-mono: "Thermal", "Victor Mono", "JetBrains Mono", ui-monospace, "SF Mono",
+  --font-mono: "PP Supply Mono", "Victor Mono", "JetBrains Mono", ui-monospace, "SF Mono",
     SFMono-Regular, "Cascadia Mono", Menlo, Consolas, monospace;
+  --font-ui: ui-sans-serif, "PP Mori", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-prose: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  /* Semantic site palette — light defaults. */
-  --color-paper: #fcfcfa;
-  --color-ink: #1a2024;
-  --color-muted: #6b7378;
-  --color-accent: #27886c;
-  --color-warning: #ff8b00;
-  --color-danger: #a33a2b;
+  /* Studio Display default CSS width (2560 @ 16px root). */
+  --container-site: 160rem;
+
+  /* Fluid type — tweak :root --fluid-* knobs above; formula stays here. */
+  --text-hero: clamp(
+    var(--fluid-hero-min),
+    calc(var(--fluid-hero-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
+    var(--fluid-hero-max)
+  );
+  --text-hero--line-height: 0.9;
+  --text-hero--letter-spacing: -0.05em;
+
+  --text-display: clamp(
+    var(--fluid-display-min),
+    calc(var(--fluid-display-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
+    var(--fluid-display-max)
+  );
+  --text-display--line-height: 1;
+
+  --text-nav: clamp(
+    var(--fluid-nav-min),
+    calc(var(--fluid-nav-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
+    var(--fluid-nav-max)
+  );
+  --text-nav--line-height: 1.15;
+
+  --text-title: clamp(
+    var(--fluid-title-min),
+    calc(var(--fluid-title-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
+    var(--fluid-title-max)
+  );
+  --text-title--line-height: 1;
+
+  --text-meta: clamp(
+    var(--fluid-meta-min),
+    calc(var(--fluid-meta-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
+    var(--fluid-meta-max)
+  );
+  --text-meta--line-height: 1.15;
+
+  --text-micro: clamp(
+    var(--fluid-micro-min),
+    calc(var(--fluid-micro-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
+    var(--fluid-micro-max)
+  );
+  --text-micro--line-height: 1.1;
+
+  --spacing-gutter: 1.5rem;
+  --spacing-col: calc(var(--fluid-col-at) / var(--fluid-frame) * 100vw * var(--fluid-scale));
+
+  /* page / fg / dim / line / surface / danger — light defaults. */
+  --color-page: #fcfcfa;
+  --color-fg: #1a2024;
+  --color-dim: #6b7378;
+  --color-line: color-mix(in srgb, #1a2024 18%, transparent);
   --color-surface: #f3f3ef;
+  --color-danger: #a33a2b;
 
-  /* CRT primitives — source values for dark overrides and future effects. */
-  --color-void: #010305;
-  --color-panel: #03070a;
-  --color-phosphor: #3ee9b7;
-  --color-phosphor-dim: #27886c;
+  --ease-wipe: cubic-bezier(0.4, 0, 0, 1);
+  --ease-underline: cubic-bezier(0.65, 0.05, 0.36, 1);
+  --dur-fast: 200ms;
+  --dur-fill: 300ms;
 }
 
 @media (prefers-color-scheme: dark) {
+  /* Unlayered :root knobs — override here, not inside @layer. */
+  :root {
+    --grain-opacity: 0.22;
+    --grain-blend: soft-light;
+    --grain-density: 0.12;
+    --cross-color: rgb(62 233 183 / 0.55);
+  }
+
   @layer theme {
     :root {
-      --color-paper: var(--color-void);
-      --color-ink: var(--color-phosphor);
-      --color-muted: #9aa39c;
-      --color-accent: var(--color-phosphor-dim);
-      --color-warning: #d69a4e;
+      --color-page: var(--crt-void);
+      --color-fg: var(--crt-phosphor);
+      --color-dim: var(--crt-phosphor-dim);
+      --color-line: color-mix(in srgb, var(--crt-phosphor) 22%, transparent);
+      --color-surface: var(--crt-panel);
       --color-danger: #e08272;
-      --color-surface: var(--color-panel);
     }
   }
 }

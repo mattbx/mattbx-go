@@ -19,7 +19,7 @@ templ Gate(p Page, v GateView) {
 			<h1 class="gate__title">{ v.Title }</h1>
 			<p class="gate__lede">{ v.Lede }</p>
 			if v.Error != "" {
-				<p class="notice" role="alert">{ v.Error }</p>
+				<p class={ classNotice } role="alert">{ v.Error }</p>
 			}
 			<form method="post" action={ templ.SafeURL(v.Action) }>
 				if v.Next != "" {

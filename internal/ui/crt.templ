@@ -1,0 +1,8 @@
+package ui
+
+// CRT overlay: drop @CRTOverlay() as last child of a position:relative hero.
+// Not wired yet — needs a container with its own background.
+templ CRTOverlay() {
+	<div class="crt-overlay crt-overlay--flicker" aria-hidden="true"></div>
+	<div class="crt-overlay__vignette" aria-hidden="true"></div>
+}

@@ -54,16 +54,30 @@ These will break the deploy if violated:
   at request time.
 - `*_templ.go` is gitignored. Generated fresh by `scripts/local.sh` and the
   Dockerfile.
-- **Colors live in `internal/ui/tailwind/input.css`.** Define semantic
-  `--color-*` tokens in `@theme static` (light defaults); dark overrides the
-  plain CSS variables under `@layer theme` inside `@media (prefers-color-scheme:
-  dark)` — Tailwind rejects nesting `@theme` inside `@media`. `main.css`
-  consumes those variables with `var()` and must not redefine colors on
-  `:root`. Spacing, type scale, and layout tokens still live in `main.css`
-  until they migrate. Tailwind v4 is adopted page by page; Preflight is
-  deliberately not imported yet, and because `main.css` is unlayered it beats
-  every utility, so delete a template's legacy rules when it moves to
-  utilities.
+- **Colors, type scale, and font stacks live in `internal/ui/tailwind/input.css`.**
+  Role-based color tokens in `@theme static` (light defaults); dark overrides
+  under `@layer theme` inside `@media (prefers-color-scheme: dark)`:
+  `--color-page` (bg), `--color-fg` (terminal foreground — graphite light /
+  phosphor dark), `--color-dim` (meta/secondary), `--color-line` (hairlines),
+  `--color-surface` (sunk panels), `--color-danger` (destructive admin only).
+  CRT source values (`--crt-void`, `--crt-phosphor`, …) stay outside `@theme`
+  for the overlay layer.   Fluid type tokens (`--text-hero` … `--text-micro`) and gutters
+  (`--spacing-gutter`, `--spacing-col`) are clamp/vw; tune via `:root`
+  knobs `--fluid-frame` / `--fluid-scale` and per-step `--fluid-*-min|at|max`
+  (preferred size in px at the design frame — no hand calc). Font stacks:
+  `--font-ui` / `--font-prose` / `--font-mono`.
+  `main.css` consumes with `var()` and must not redefine these on `:root`.
+  Tailwind v4 is hybrid: shell/page chrome are utilities; prose, leaf/rail,
+  ledger, forms, and gate stay in `main.css` until further migration. Preflight
+  is not imported yet; unlayered `main.css` beats utilities — delete legacy
+  rules when moving to utilities, never paper over with `!`. Shared utility
+  clusters in `internal/ui/classes.go` must stay in `@source`. Opt-in motion:
+  `.hover-underline`, `.hover-fill` (fg/page invert), `data-scramble`,
+  `data-magnetic`, CRT overlay — class/`data-*` gated, not global. Site-wide
+  film grain is `canvas.grain` + `terminal.js`, tuned via `:root` `--grain-*`
+  (opacity/blend/density/scale/fps; light + dark defaults). Corner crosses
+  (`@CornerCrosses()`) use `--cross-color` / `--cross-arm` / `--cross-arm-rest`.
+  Motion timings: `--ease-wipe`, `--ease-underline`, `--dur-fast`, `--dur-fill`.
 - **`chroma.css` is syntax highlighting only.** Generated from Chroma's
   `github` / `github-dark` styles by `go generate ./internal/ui/...`. It is a
   separate palette from the site tokens; do not fold it into `@theme`. Code
@@ -75,6 +89,11 @@ These will break the deploy if violated:
   in prod. Check UI changes against a build running with `ENV=production`.
   Setting styles from JS through `el.style` is fine; only markup is restricted.
 - Site name, role, and tagline are constants at the top of `internal/ui/page.go`.
+- **Tailwind IntelliSense for `.templ`:** workspace `.vscode/settings.json` maps
+  `templ` → `html`, points `tailwindCSS.experimental.configFile` at
+  `internal/ui/tailwind/input.css`, and turns on string quick-suggestions. Needs
+  the `a-h.templ` and Tailwind CSS IntelliSense extensions; standalone CLI is
+  fine (no npm) on recent IntelliSense.
 
 ## Gotchas found the hard way
 
@@ -90,3 +109,13 @@ These will break the deploy if violated:
   Wrong for prose; deliberately not enabled.
 - `ADMIN_PASSWORD` and `PORTFOLIO_PASSWORD` must differ — startup refuses
   otherwise, so a portfolio visitor can never reach `/admin`.
+- **Global `a { color: … }` beats `text-*` utilities.** Unlayered link color
+  in `main.css` wins over Tailwind. Chrome that should stay dim (footer,
+  admin bar) needs a matching unlayered hook, not only a utility class.
+- **Unknown or unsourced Tailwind classes fail silently.** A typo, a class
+  only present in an unsourced Go string, or a theme token never defined in
+  `@theme` produces no CSS and no build error — check the generated
+  `tailwind.css` when something "doesn't apply."
+- **Scramble + magnetic share a label node.** Put visible text in
+  `[data-label]` inside `[data-magnetic]`; scramble targets that child so it
+  does not wipe the wrapper DOM when rewriting `textContent`.

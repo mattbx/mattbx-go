@@ -730,9 +730,40 @@ html.is-scrolling .corners__cross--bc::after { transition-delay: 60ms; }
 
 @media (prefers-reduced-motion: reduce) {
   .crt-overlay--flicker { animation: none; }
+  .cursor-trail { display: none; }
+}
+
+/* Pointer crosshair + trail (cursor.js). Below .corners (50), above grain (40).
+   Trial — delete this block with cursor.js and its script tag. */
+.cursor-rule {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 45;
+  pointer-events: none;
+  background: var(--cross-color, rgb(5 5 5 / 0.72));
+  will-change: transform;
+}
+.cursor-rule--h {
+  width: 100%;
+  height: 1px;
+  margin-top: -0.5px;
+}
+.cursor-rule--v {
+  width: 1px;
+  height: 100%;
+  margin-left: -0.5px;
+}
+.cursor-trail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 45;
+  pointer-events: none;
 }
 
 @media print {
-  .site-header, footer, .admin-bar, .rail, .grain, .corners { display: none; }
+  .site-header, footer, .admin-bar, .rail, .grain, .corners,
+  .cursor-rule, .cursor-trail { display: none; }
   body { color: #000; background: #fff; }
 }

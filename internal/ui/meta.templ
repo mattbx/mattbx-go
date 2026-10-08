@@ -8,7 +8,7 @@ import (
 // Colophon-style readouts. Each piece is usable alone; MetaRow is one layout.
 
 templ metaField(label string) {
-	<span class="inline-flex items-baseline gap-2 font-mono text-nav uppercase tracking-wide whitespace-nowrap">
+	<span class="inline-flex items-baseline gap-2 font-mono text-meta uppercase tracking-wide whitespace-nowrap">
 		if label != "" {
 			<span class="text-fg">{ label }:</span>
 		}

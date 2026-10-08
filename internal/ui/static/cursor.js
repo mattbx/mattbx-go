@@ -167,23 +167,28 @@
     }, 100);
   };
 
-  const stop = () => {
+  // Pause the loop only — keep DOM + listeners so bfcache restore works.
+  const pause = () => {
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
     running = false;
     clearTimeout(resizeTimer);
-    window.removeEventListener("pointermove", onPointer);
-    window.removeEventListener("resize", onResize);
-    window.removeEventListener("pagehide", stop);
-    ruleH.remove();
-    ruleV.remove();
-    if (canvas) canvas.remove();
+    if (ctx && canvas) {
+      ctx.clearRect(0, 0, document.documentElement.clientWidth, document.documentElement.clientHeight);
+    }
+  };
+
+  const onPageShow = (e) => {
+    if (!e.persisted) return;
+    resize();
+    moveCross(raw.x, raw.y);
   };
 
   resize();
   window.addEventListener("pointermove", onPointer, { passive: true });
   window.addEventListener("resize", onResize);
-  window.addEventListener("pagehide", stop);
+  window.addEventListener("pagehide", pause);
+  window.addEventListener("pageshow", onPageShow);
 
   reduce.addEventListener("change", () => {
     // Full reload of trail presence is simplest; crosshairs stay.

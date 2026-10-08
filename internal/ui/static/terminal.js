@@ -325,3 +325,10 @@ initMagnetic();
 initHoverFillArm();
 initGrain();
 initCornerCrosses();
+
+// pagehide tears grain/corners down for bfcache; reinstate on restore.
+window.addEventListener("pageshow", (e) => {
+  if (!e.persisted) return;
+  initGrain();
+  initCornerCrosses();
+});

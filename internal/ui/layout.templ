@@ -5,7 +5,7 @@ import "github.com/mattbx/mattbx-go/internal/ui/static"
 // Layout is the site shell.
 templ Layout(p Page) {
 	<!DOCTYPE html>
-	<html lang="en">
+	<html lang="en" data-theme={ p.ThemeAttr() } class={ profileClass(p) }>
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -30,41 +30,67 @@ templ Layout(p Page) {
 		</head>
 		<body class={ bodyClass(p) }>
 			<canvas class="grain" aria-hidden="true"></canvas>
-			@CornerCrosses()
 			<a class={ classSkipLink } href="#main">Skip to content</a>
 			if p.IsAdmin {
 				@adminBar()
 			}
-			<header class="site-header py-4 fixed top-0 left-0 right-0 z-10">
-				<div class="max-w-site w-full mx-auto px-gutter flex items-center justify-between">
-					<a class="wordmark font-ui text-nav tracking-tight font-semibold text-fg no-underline" href="/">{ SiteMark }</a>
-					<div class="hidden md:block">@MetaClock()</div>
-					
-					<nav class="nav font-mono uppercase text-nav text-fg flex gap-6" aria-label="Primary">
-						<a class="hover-underline" data-scramble="link" href="/blog" { current(p.Nav == "blog")... }>Posts</a>
-						<a class="hover-underline" data-scramble="link" href="/about" { current(p.Nav == "about")... }>About</a>
-						<a class="is-locked hover-underline" data-scramble="link" href="/portfolio" { current(p.Nav == "portfolio")... }>Portfolio</a>
-					</nav>
+			<div class="shell">
+				<header class="site-header">
+					<div class="site-header__inner">
+						<a class="wordmark font-mono text-nav uppercase tracking-normal font-bold text-navigation no-underline" href="/">{ SiteMark }</a>
+						<div class="site-header__end">
+							<div class="site-header__clock hidden md:block">@MetaClock()</div>
+							<nav class="nav font-mono uppercase text-nav text-navigation flex gap-6" aria-label="Primary">
+								<a class="nav-item" data-scramble="link" href="/" { current(p.Nav == "work")... }>Work</a>
+								<a class="nav-item" data-scramble="link" href="/blog" { current(p.Nav == "other" || p.Nav == "blog")... }>Other</a>
+							</nav>
+							<button
+								type="button"
+								class="profile-control font-mono text-nav uppercase tracking-normal text-navigation bg-transparent border-0 cursor-pointer p-0"
+								data-profile-toggle
+								aria-controls="profile-panel"
+								aria-expanded={ profileExpanded(p) }
+							>
+								<span data-profile-label>{ profileLabel(p) }</span>
+							</button>
+						</div>
+					</div>
+				</header>
+				<div class="shell__body">
+					<main class="shell__main" id="main">
+						{ children... }
+					</main>
+					<aside class="profile-panel" id="profile-panel" aria-label="Profile">
+						@ProfilePanel()
+					</aside>
 				</div>
-			</header>
-			<main class="flex-1 pt-24 md:pt-32 lg:pt-40 flex flex-col h-full max-w-site w-full mx-auto px-gutter" id="main">
-				{ children... }
-			</main>
-			<footer class="mt-24 max-w-site px-gutter mx-auto pt-6 pb-6 font-mono uppercase text-nav flex flex-wrap gap-6 justify-between">
-				<span>© { p.Year() } { SiteName }</span>
-				<span>
-					<a class="hover-underline" data-scramble="link" href="/feed.xml">Atom feed</a>
-					{ " · " }
-					<a class="hover-underline" data-scramble="link" href="/feed.json">JSON feed</a>
-					{ " · " }
-					<a class="hover-underline" href="https://micropub.spec.indieweb.org/">Micropub enabled</a>
-				</span>
-				<div class="w-full mt-4 pt-4 border-t border-line">
-					@MetaRow()
-				</div>
-			</footer>
+				<footer class="site-footer font-mono uppercase text-meta">
+					<span>© { p.Year() } { SiteName }</span>
+					<span class="site-footer__themes" data-theme-switcher aria-label="Theme">
+						for _, t := range themeOptions() {
+							<button
+								type="button"
+								class="theme-swatch"
+								data-theme-set={ t }
+								aria-pressed={ themePressed(p, t) }
+								title={ t }
+							></button>
+						}
+					</span>
+					<span>{ SiteMark }</span>
+				</footer>
+			</div>
 		</body>
 	</html>
+}
+
+templ ProfilePanel() {
+	<div class="profile-panel__inner font-mono text-body text-fg">
+		<p class="profile-panel__bio m-0">{ SiteBio }</p>
+		<p class="profile-panel__links mt-3 m-0">
+			<a class="hover-underline" href={ templ.SafeURL(SiteContact) }>Get in touch ↗</a>
+		</p>
+	</div>
 }
 
 // Admin write-access bar.
@@ -90,7 +116,39 @@ func current(active bool) templ.Attributes {
 
 func bodyClass(p Page) string {
 	if p.IsAdmin {
-		return "is-admin flex flex-col justify-between min-h-screen"
+		return "is-admin flex flex-col min-h-screen"
 	}
-	return "flex flex-col justify-between min-h-screen"
+	return "flex flex-col min-h-screen"
+}
+
+func profileClass(p Page) string {
+	if p.ProfileOpen {
+		return "profile-open"
+	}
+	return ""
+}
+
+func profileExpanded(p Page) string {
+	if p.ProfileOpen {
+		return "true"
+	}
+	return "false"
+}
+
+func profileLabel(p Page) string {
+	if p.ProfileOpen {
+		return "Close"
+	}
+	return "Profile"
+}
+
+func themePressed(p Page, theme string) string {
+	if p.ThemeAttr() == theme {
+		return "true"
+	}
+	return "false"
+}
+
+func themeOptions() []string {
+	return []string{"default", "light", "green", "dark-green", "blueish-2"}
 }

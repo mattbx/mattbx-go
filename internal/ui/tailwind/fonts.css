@@ -1,11 +1,50 @@
 /* Self-hosted fonts. The CSP only allows fonts from this origin, so Google
    Fonts links will not load; the files live in ../static/fonts and are fetched
-   by scripts/fetch-fonts.sh. Latin subsets only, so glyphs outside that range
-   (box drawing, block elements, most arrows) fall back to the next family in
-   the stack. Check that coverage before settling on a terminal face.
+   by scripts/fetch-fonts.sh. Latin subsets only.
 
-   Only OFL fonts belong here. Trial or commercial faces are installed on the
-   local machine and named in front of the stack in input.css instead. */
+   Only OFL fonts belong here. Commercial faces (PP Fraktion Mono) are
+   installed on the local machine / deploy volume and named first in the
+   stack in input.css — do not commit those .woff2 files to the public repo. */
+
+@font-face {
+  font-family: "Inter Variable";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/static/fonts/inter-latin-opsz-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/static/fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/static/fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/static/fonts/inter-latin-600-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/static/fonts/inter-latin-700-normal.woff2") format("woff2");
+}
 
 @font-face {
   font-family: "Victor Mono";

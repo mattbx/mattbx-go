@@ -12,21 +12,35 @@ import (
 
 // Site copy — edit here to rebrand.
 const (
-	SiteName    = "Hi there, I'm Matt!"
-	SiteMark    = "Mbx"
-	SiteRole    = "UI/UX Engineer"
-	SiteTagline = "I design and build digital products and things with my dog Pippi, in Sydney AU.*Available for work opportunities and tacos.*This is mostly placeholder content for now until I have something to say."
+	SiteName     = "Matt Barron"
+	SiteMark     = "mattbx.co"
+	SiteRole     = "Work & Other Things"
+	SiteTagline  = "Work & Other Things"
+	SiteHeroCode = "#224013"
+	SiteContact  = "mailto:hello@mattbx.co"
+	SiteBio      = "I design and build digital products and things — from interfaces to the systems behind them. Based in Sydney AU. Available for work opportunities."
 )
+
+// ValidThemes are allowed data-theme cookie values.
+var ValidThemes = map[string]bool{
+	"default":    true,
+	"light":      true,
+	"green":      true,
+	"dark-green": true,
+	"blueish-2":  true,
+}
 
 // Page is per-request shell context from handlers.
 type Page struct {
 	Title       string // SiteName appended by the shell when set
 	Description string
-	Nav         string // "blog" | "about" | "portfolio" | ""
+	Nav         string // "work" | "other" | "blog" | ""
 	// IsAdmin is presentation only (toolbar). Access is middleware-gated.
-	IsAdmin bool
-	BaseURL string
-	Path    string
+	IsAdmin     bool
+	BaseURL     string
+	Path        string
+	Theme       string // data-theme on <html>
+	ProfileOpen bool
 }
 
 func (p Page) DocumentTitle() string {
@@ -41,6 +55,13 @@ func (p Page) CanonicalURL() string {
 }
 
 func (p Page) Year() string { return time.Now().Format("2006") }
+
+func (p Page) ThemeAttr() string {
+	if ValidThemes[p.Theme] {
+		return p.Theme
+	}
+	return "default"
+}
 
 func railDate(t time.Time) string    { return t.Format("2 Jan 2006") }
 func machineDate(t time.Time) string { return t.Format("2006-01-02") }
@@ -86,6 +107,25 @@ func statusClass(published bool) string {
 }
 
 func orderLabel(n int) string { return strconv.Itoa(n) }
+
+// projectIndex formats sort_order as a zero-padded three-digit index.
+func projectIndex(sortOrder int) string {
+	if sortOrder < 0 {
+		sortOrder = 0
+	}
+	return fmt.Sprintf("%03d", sortOrder)
+}
+
+// projectFormat returns the first tech tag, or empty.
+func projectFormat(p *db.Project) string {
+	tags := p.TechList()
+	if len(tags) == 0 {
+		return ""
+	}
+	return tags[0]
+}
+
+func workPath(slug string) string { return "/work/" + slug }
 
 func deletePostPath(id int64) string    { return fmt.Sprintf("/admin/posts/%d/delete", id) }
 func deleteProjectPath(id int64) string { return fmt.Sprintf("/admin/projects/%d/delete", id) }

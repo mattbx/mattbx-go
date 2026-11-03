@@ -13,131 +13,39 @@
 @source "../classes.go";
 @source "../static/terminal.js";
 
-/* Fluid knobs (not theme utilities — edit these, not the clamps).
-   --fluid-frame: design width in px. Preferred size equals --*-at at that width.
-   --fluid-scale: global multiplier on every preferred/vw term (try 0.9 / 1.1).
-   Per step: --fluid-*-min (rem floor), --fluid-*-at (px at frame), --fluid-*-max (rem ceiling). */
+/* Theme roles live on :root; data-theme overrides swap values.
+   Legacy --color-page/fg/dim/line/surface alias the Figma roles so
+   existing utilities keep working during the restyle. */
 :root {
-  --fluid-frame: 1280;
-  --fluid-scale: 0.6;
+  /* Default theme (Figma Collection 1 — dark blue-gray). */
+  --bg-primary: #1b1c21;
+  --text-primary: #a8acb3;
+  --text-secondary: #808898;
+  --text-muted: #3e424a;
+  --text-navigation: #babdc3;
+  --border-subtle: #2c2d30;
+  --surface-secondary: #232429;
+  --danger: #e08272;
 
-  --fluid-hero-min: 2.5rem;
-  --fluid-hero-at: 124;
-  --fluid-hero-max: 4.625rem;
-
-  --fluid-display-min: 1.25rem;
-  --fluid-display-at: 28;
-  --fluid-display-max: 3rem;
-
-  --fluid-nav-min: 1.125rem;
-  --fluid-nav-at: 12;
-  --fluid-nav-max: 1.875rem;
-
-  --fluid-title-min: 1rem;
-  --fluid-title-at: 16;
-  --fluid-title-max: 1.5rem;
-
-  --fluid-meta-min: 0.875rem;
-  --fluid-meta-at: 12;
-  --fluid-meta-max: 1.625rem;
-
-  --fluid-micro-min: 0.75rem;
-  --fluid-micro-at: 11;
-  --fluid-micro-max: 1.03rem;
-
-  --fluid-col-at: 20;
-
-  /* Grain overlay (terminal.js → canvas.grain). Density/scale/fps need a
-     reload or theme flip to rebuild tiles; opacity/blend apply live. */
-  --grain-opacity: 0.085;
-  --grain-blend: multiply;
-  --grain-density: 0.18;
+  /* Grain parked for this pass — keep knobs; opacity 0. */
+  --grain-opacity: 0;
+  --grain-blend: soft-light;
+  --grain-density: 0.12;
   --grain-scale: 1.1;
   --grain-fps: 11;
   --grain-tiles: 6;
 
-  /* Corner crosses (corners.templ). --cross-arm-rest is the mid-page size;
-     set equal to --cross-arm to disable the shrink (retract still works). */
-  --cross-color: rgb(26 32 36 / 0.2);
-  --cross-arm: 22px;
-  --cross-arm-rest: 11px;
-  --cross-inset: 10px;
-  --ease-cross: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --cross-color: transparent;
+  --cross-arm: 0px;
+  --cross-arm-rest: 0px;
+  --cross-inset: 0px;
 
   --crt-void: #14161b;
   --crt-panel: #03070a;
   --crt-phosphor: #3ee9b7;
   --crt-phosphor-dim: #27886c;
-}
 
-/* Tokens: @theme static so main.css / CRT can var() them even unused.
-   Dark overrides plain CSS vars under @layer theme (no nested @theme).
-   --font-mono: put a local face first to preview without committing licenses. */
-@theme static {
-  --font-mono: "PP Supply Mono", "Victor Mono", "JetBrains Mono", ui-monospace, "SF Mono",
-    SFMono-Regular, "Cascadia Mono", Menlo, Consolas, monospace;
-  --font-ui: ui-sans-serif, "PP Mori", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-prose: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
-
-  /* Studio Display default CSS width (2560 @ 16px root). */
-  --container-site: 160rem;
-
-  /* Fluid type — tweak :root --fluid-* knobs above; formula stays here. */
-  --text-hero: clamp(
-    var(--fluid-hero-min),
-    calc(var(--fluid-hero-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
-    var(--fluid-hero-max)
-  );
-  --text-hero--line-height: 0.9;
-  --text-hero--letter-spacing: -0.05em;
-
-  --text-display: clamp(
-    var(--fluid-display-min),
-    calc(var(--fluid-display-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
-    var(--fluid-display-max)
-  );
-  --text-display--line-height: 1;
-
-  --text-nav: clamp(
-    var(--fluid-nav-min),
-    calc(var(--fluid-nav-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
-    var(--fluid-nav-max)
-  );
-  --text-nav--line-height: 1.15;
-
-  --text-title: clamp(
-    var(--fluid-title-min),
-    calc(var(--fluid-title-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
-    var(--fluid-title-max)
-  );
-  --text-title--line-height: 1;
-
-  --text-meta: clamp(
-    var(--fluid-meta-min),
-    calc(var(--fluid-meta-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
-    var(--fluid-meta-max)
-  );
-  --text-meta--line-height: 1.15;
-
-  --text-micro: clamp(
-    var(--fluid-micro-min),
-    calc(var(--fluid-micro-at) / var(--fluid-frame) * 100vw * var(--fluid-scale)),
-    var(--fluid-micro-max)
-  );
-  --text-micro--line-height: 1.1;
-
-  --spacing-gutter: 1.5rem;
-  --spacing-col: calc(var(--fluid-col-at) / var(--fluid-frame) * 100vw * var(--fluid-scale));
-
-  /* page / fg / dim / line / surface / danger — light defaults. */
-  --color-page: #fcfcfa;
-  --color-fg: #1a2024;
-  --color-dim: #6b7378;
-  --color-line: color-mix(in srgb, #1a2024 18%, transparent);
-  --color-surface: #f3f3ef;
-  --color-danger: #a33a2b;
+  --hero-overlap: -12px;
 
   --ease-wipe: cubic-bezier(0.4, 0, 0, 1);
   --ease-underline: cubic-bezier(0.65, 0.05, 0.36, 1);
@@ -145,23 +53,123 @@
   --dur-fill: 300ms;
 }
 
-@media (prefers-color-scheme: dark) {
-  /* Unlayered :root knobs — override here, not inside @layer. */
-  :root {
-    --grain-opacity: 0.22;
-    --grain-blend: soft-light;
-    --grain-density: 0.12;
-    --cross-color: rgb(62 233 183 / 0.55);
-  }
+html[data-theme="light"] {
+  --bg-primary: #f0efea;
+  --text-primary: #0f0e12;
+  --text-secondary: rgb(15 14 18 / 0.7);
+  --text-muted: rgb(15 14 18 / 0.5);
+  --text-navigation: #0f0e12;
+  --border-subtle: #d1cfc7;
+  --surface-secondary: #ebeae5;
+  --danger: #a33a2b;
+}
 
-  @layer theme {
-    :root {
-      --color-page: var(--crt-void);
-      --color-fg: var(--crt-phosphor);
-      --color-dim: var(--crt-phosphor-dim);
-      --color-line: color-mix(in srgb, var(--crt-phosphor) 22%, transparent);
-      --color-surface: var(--crt-panel);
-      --color-danger: #e08272;
-    }
-  }
+html[data-theme="green"] {
+  --bg-primary: #268b43;
+  --text-primary: rgb(255 255 255 / 0.9);
+  --text-secondary: rgb(255 255 255 / 0.8);
+  --text-muted: rgb(255 255 255 / 0.7);
+  --text-navigation: rgb(255 255 255 / 0.9);
+  --border-subtle: rgb(255 255 255 / 0.2);
+  --surface-secondary: #2a9849;
+  --danger: #ffe0d8;
+}
+
+html[data-theme="dark-green"] {
+  --bg-primary: #00704b;
+  --text-primary: #04110c;
+  --text-secondary: rgb(4 17 12 / 0.6);
+  --text-muted: rgb(4 17 12 / 0.4);
+  --text-navigation: #04110c;
+  --border-subtle: rgb(52 52 52 / 0.5);
+  --surface-secondary: #071912;
+  --danger: #a33a2b;
+}
+
+/* Same bg/text as default; only border + secondary surface differ. */
+html[data-theme="blueish-2"] {
+  --bg-primary: #1b1c21;
+  --text-primary: #a8acb3;
+  --text-secondary: #808898;
+  --text-muted: #3e424a;
+  --text-navigation: #babdc3;
+  --border-subtle: #333438;
+  --surface-secondary: #2a2b31;
+  --danger: #e08272;
+}
+
+/* Tokens: @theme static so main.css can var() them even unused.
+   --font-mono: PP Fraktion Mono first (local/personal — not committed);
+   Inter Variable is OFL via fetch-fonts.sh. */
+@theme static {
+  --font-mono: "PP Fraktion Mono", "JetBrains Mono", "Victor Mono", ui-monospace, "SF Mono",
+    SFMono-Regular, "Cascadia Mono", Menlo, Consolas, monospace;
+  --font-ui: "Inter Variable", "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-prose: "Inter Variable", "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* ~1512 desktop reference; content uses full width with 16px gutter. */
+  --container-site: 94.5rem;
+
+  /* Desktop-first type from Figma; light clamp floors for smaller viewports. */
+  --text-hero: clamp(3rem, 6.7vw, 6.346rem);
+  --text-hero--line-height: 1;
+  --text-hero--letter-spacing: -0.03em;
+
+  --text-display: clamp(2.5rem, 6.7vw, 6.346rem);
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -0.03em;
+
+  --text-section: 1.0625rem;
+  --text-section--line-height: 1;
+  --text-section--letter-spacing: -0.03em;
+
+  --text-project: 0.8125rem;
+  --text-project--line-height: 1.25rem;
+  --text-project--letter-spacing: -0.02em;
+
+  --text-nav: 0.75rem;
+  --text-nav--line-height: 1;
+  --text-nav--letter-spacing: 0;
+
+  --text-title: 0.8125rem;
+  --text-title--line-height: 1.25rem;
+
+  --text-meta: 0.75rem;
+  --text-meta--line-height: 1.25rem;
+
+  --text-micro: 0.75rem;
+  --text-micro--line-height: 1.125rem;
+
+  --text-body: 0.75rem;
+  --text-body--line-height: 1.125rem;
+  --text-body--letter-spacing: -0.03em;
+
+  --spacing-gutter: 1rem;
+  --spacing-2: 0.125rem;
+  --spacing-4: 0.25rem;
+  --spacing-6: 0.375rem;
+  --spacing-8: 0.5rem;
+  --spacing-12: 0.75rem;
+  --spacing-16: 1rem;
+  --spacing-24: 1.5rem;
+  --spacing-32: 2rem;
+  --spacing-40: 2.5rem;
+  --spacing-col: 1.5rem;
+
+  /* Aliases for existing utilities / main.css. */
+  --color-page: var(--bg-primary);
+  --color-fg: var(--text-primary);
+  --color-dim: var(--text-secondary);
+  --color-line: var(--border-subtle);
+  --color-surface: var(--surface-secondary);
+  --color-navigation: var(--text-navigation);
+  --color-muted: var(--text-muted);
+  --color-danger: var(--danger);
+
+  --ease-wipe: cubic-bezier(0.4, 0, 0, 1);
+  --ease-underline: cubic-bezier(0.65, 0.05, 0.36, 1);
+  --dur-fast: 200ms;
+  --dur-fill: 300ms;
 }

@@ -45,7 +45,7 @@ templ AdminDashboard(p Page, posts []*db.Post, projects []*db.Project) {
 							<a class="rowlist__title" href={ templ.SafeURL(editProjectPath(project.ID)) }>{ project.Title }</a>
 							<span class={ classBadge, statusClass(project.Published) }>{ statusOf(project.Published) }</span>
 							<span class="rowlist__meta">order { orderLabel(project.SortOrder) }</span>
-							<a class="rowlist__meta" href={ templ.SafeURL("/portfolio/" + project.Slug) }>View</a>
+							<a class="rowlist__meta" href={ templ.SafeURL("/work/" + project.Slug) }>View</a>
 						</li>
 					}
 				</ul>
@@ -130,7 +130,7 @@ templ ProjectForm(p Page, v ProjectFormView) {
 			<label class="field">
 				<span class="field__label">
 					Slug
-					<span class="field__hint">The URL after /portfolio/. Leave blank to build one from the title.</span>
+					<span class="field__hint">The URL after /work/. Leave blank to build one from the title.</span>
 				</span>
 				<input class="input" type="text" name="slug" value={ v.Project.Slug }/>
 			</label>

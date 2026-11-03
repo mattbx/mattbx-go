@@ -5,7 +5,7 @@ templ About(p Page) {
 		<div class={ classPageHead }>
 			<p class={ classEyebrow }>{ SiteRole }</p>
 			<h1 class={ classPageTitle }>About</h1>
-			<p class={ classPageLede }>{ SiteTagline }</p>
+			<p class={ classPageLede }>{ SiteBio }</p>
 		</div>
 		<div class="prose">
 			<p>
@@ -13,12 +13,11 @@ templ About(p Page) {
 				to the systems behind them.
 			</p>
 			<p>
-				This site is where I publish writing and share selected work. For posts,
-				head to the{ " " }<a href="/blog">blog</a>.
+				Selected work lives on the{ " " }<a href="/">home page</a>.
+				Writing is under{ " " }<a href="/blog">Other</a>.
 			</p>
 			<p>
-				The portfolio is password-gated. If you need access,{ " " }
-				<a href="/portfolio">ask me</a>{ " " }and I will send one.
+				<a href={ templ.SafeURL(SiteContact) }>Get in touch ↗</a>
 			</p>
 		</div>
 	}

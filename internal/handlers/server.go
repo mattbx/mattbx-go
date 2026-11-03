@@ -42,6 +42,10 @@ func New(cfg *config.Config, sqlDB *sql.DB, log *slog.Logger) *Server {
 // page builds the shell context for a request. IsAdmin is presentation only —
 // it reveals edit affordances and drafts, never grants access on its own.
 func (s *Server) page(r *http.Request, title, description, nav string) ui.Page {
+	theme := "default"
+	if c, err := r.Cookie("theme"); err == nil && ui.ValidThemes[c.Value] {
+		theme = c.Value
+	}
 	return ui.Page{
 		Title:       title,
 		Description: description,
@@ -49,6 +53,8 @@ func (s *Server) page(r *http.Request, title, description, nav string) ui.Page {
 		IsAdmin:     s.isAdmin(r),
 		BaseURL:     s.cfg.BaseURL,
 		Path:        r.URL.Path,
+		Theme:       theme,
+		ProfileOpen: r.URL.Query().Get("profile") == "1",
 	}
 }
 

@@ -200,7 +200,7 @@ func (s *Server) handleCreateProject(w http.ResponseWriter, r *http.Request) {
 		s.serverError(w, r, err)
 		return
 	}
-	http.Redirect(w, r, "/portfolio/"+project.Slug, http.StatusSeeOther)
+	http.Redirect(w, r, "/work/"+project.Slug, http.StatusSeeOther)
 }
 
 func (s *Server) handleUpdateProject(w http.ResponseWriter, r *http.Request) {
@@ -220,7 +220,7 @@ func (s *Server) handleUpdateProject(w http.ResponseWriter, r *http.Request) {
 		s.serverError(w, r, err)
 		return
 	}
-	http.Redirect(w, r, "/portfolio/"+project.Slug, http.StatusSeeOther)
+	http.Redirect(w, r, "/work/"+project.Slug, http.StatusSeeOther)
 }
 
 func (s *Server) bindProject(w http.ResponseWriter, r *http.Request, project *db.Project, isNew bool, action string) bool {

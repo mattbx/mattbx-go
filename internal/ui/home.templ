@@ -2,23 +2,52 @@ package ui
 
 import "github.com/mattbx/mattbx-go/internal/db"
 
-templ Home(p Page, posts []*db.Post) {
+templ Home(p Page, projects []*db.Project) {
 	@Layout(p) {
-		<div class={ classPageHead }>
-			<h1 class="font-mono font-normal text-display mbe-0 tracking-wide uppercase text-fg">{ SiteName }</h1>
-			<p class="mt-2 font-mono uppercase tracking-wide text-fg text-display lg:max-w-2/3 leading-tight">{ SiteTagline }</p>
-		</div>
-		if len(posts) > 0 {
-			<section aria-labelledby="recent">
-				<div class={ classSectionHead }>
-					<h2 class={ classPageTitleSm } id="recent">Latest</h2>
-				</div>
+		<section class="hero">
+			<h1 class="hero__display font-ui text-display text-fg m-0">
+				<span class="hero__line">{ SiteName }</span>
+				<span class="hero__line">{ SiteRole }</span>
+				<span class="hero__line">{ SiteHeroCode }</span>
+			</h1>
+			<p class="hero__contact m-0 mt-6">
+				<a class="font-mono text-meta text-fg underline underline-offset-2" href={ templ.SafeURL(SiteContact) }>Get in touch ↗</a>
+			</p>
+		</section>
+		<section class="work-index" aria-labelledby="work-label">
+			<h2 class="work-index__label font-mono text-meta uppercase text-fg m-0" id="work-label">Work</h2>
+			if len(projects) == 0 {
+				<p class={ classEmpty }>No projects published yet.</p>
+			} else {
 				<ol class="ledger">
-					for _, post := range posts {
-						@postEntry(post)
+					for _, project := range projects {
+						@workEntry(project, false)
 					}
 				</ol>
-			</section>
-		}
+			}
+		</section>
 	}
+}
+
+// workEntry is the numbered project row. Compact drops reference/format columns.
+templ workEntry(project *db.Project, compact bool) {
+	<li class="entry">
+		<a class="entry__link" href={ templ.SafeURL(workPath(project.Slug)) }>
+			<span class="entry__index font-mono">{ projectIndex(project.SortOrder) }</span>
+			<span class="entry__title font-ui">{ project.Title }</span>
+			if !compact {
+				<span class="entry__ref font-mono uppercase text-dim">
+					if project.Role != "" {
+						{ project.Role }
+					}
+				</span>
+				<span class="entry__format font-mono uppercase text-dim">
+					{ projectFormat(project) }
+				</span>
+			}
+			if !project.Published {
+				<span class={ classBadge, "text-dim" }>draft</span>
+			}
+		</a>
+	</li>
 }

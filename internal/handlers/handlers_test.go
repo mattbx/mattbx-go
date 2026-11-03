@@ -94,7 +94,6 @@ func TestGatedRoutesRedirectAnonymousUsers(t *testing.T) {
 	_, h, _, _ := newTestServer(t)
 
 	for _, path := range []string{
-		"/portfolio", "/portfolio/anything",
 		"/admin", "/admin/posts/new", "/admin/projects/new",
 		"/admin/posts/1/edit", "/admin/posts/1/delete",
 	} {
@@ -109,30 +108,34 @@ func TestGatedRoutesRedirectAnonymousUsers(t *testing.T) {
 	}
 }
 
+func TestPortfolioURLsRedirectToWork(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+
+	w := get(h, "/portfolio")
+	if w.Code != http.StatusMovedPermanently {
+		t.Fatalf("GET /portfolio: status %d, want 301", w.Code)
+	}
+	if loc := w.Header().Get("Location"); loc != "/" {
+		t.Errorf("Location = %q, want /", loc)
+	}
+
+	w = get(h, "/portfolio/ledger")
+	if w.Code != http.StatusMovedPermanently {
+		t.Fatalf("GET /portfolio/ledger: status %d, want 301", w.Code)
+	}
+	if loc := w.Header().Get("Location"); loc != "/work/ledger" {
+		t.Errorf("Location = %q, want /work/ledger", loc)
+	}
+}
+
 // The two passwords must stay independent — this is the whole point of having
 // separate scopes.
 func TestPortfolioSessionCannotReachAdmin(t *testing.T) {
 	_, h, _, _ := newTestServer(t)
 	portfolio := signIn(t, h, "/portfolio/login", portfolioPassword)
 
-	if w := get(h, "/portfolio", portfolio); w.Code != http.StatusOK {
-		t.Fatalf("portfolio session cannot open /portfolio: %d", w.Code)
-	}
 	if w := get(h, "/admin", portfolio); w.Code != http.StatusSeeOther {
 		t.Errorf("portfolio session reached /admin: status %d, want a redirect", w.Code)
-	}
-}
-
-func TestAdminSessionCannotReachPortfolio(t *testing.T) {
-	_, h, _, _ := newTestServer(t)
-	admin := signIn(t, h, "/admin/login", adminPassword)
-
-	if w := get(h, "/admin", admin); w.Code != http.StatusOK {
-		t.Fatalf("admin session cannot open /admin: %d", w.Code)
-	}
-	// Admin is not implicitly a portfolio viewer; you sign in to each door.
-	if w := get(h, "/portfolio", admin); w.Code != http.StatusSeeOther {
-		t.Errorf("admin session reached /portfolio without its password: %d", w.Code)
 	}
 }
 
@@ -306,25 +309,31 @@ func TestProjectLinksMustBeHTTP(t *testing.T) {
 	}
 }
 
-func TestPortfolioProjectVisibleToPortfolioSession(t *testing.T) {
+func TestWorkIsPublic(t *testing.T) {
 	_, h, _, projects := newTestServer(t)
 
 	err := projects.Create(context.Background(), &db.Project{
 		Slug: "ledger", Title: "Ledger", Summary: "A thing I built",
-		Tech: "Go, SQLite", Published: true, BodyHTML: "<p>case study</p>",
+		Tech: "Go, SQLite", Role: "Ref. V/GRQ-281", SortOrder: 1, Published: true,
+		BodyHTML: "<p>case study</p>",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	portfolio := signIn(t, h, "/portfolio/login", portfolioPassword)
-
-	body := get(h, "/portfolio", portfolio).Body.String()
+	home := get(h, "/")
+	if home.Code != http.StatusOK {
+		t.Fatalf("GET /: status %d", home.Code)
+	}
+	body := home.Body.String()
 	if !strings.Contains(body, "Ledger") {
-		t.Error("portfolio index does not list the project")
+		t.Error("home does not list the project")
+	}
+	if !strings.Contains(body, "001") {
+		t.Error("home does not show zero-padded index")
 	}
 
-	w := get(h, "/portfolio/ledger", portfolio)
+	w := get(h, "/work/ledger")
 	if w.Code != http.StatusOK {
 		t.Fatalf("project detail: status %d", w.Code)
 	}
@@ -347,9 +356,9 @@ func TestHealthzChecksTheDatabase(t *testing.T) {
 func TestPrivatePathsAreNotIndexable(t *testing.T) {
 	_, h, _, _ := newTestServer(t)
 
-	w := get(h, "/portfolio")
+	w := get(h, "/admin/login")
 	if got := w.Header().Get("X-Robots-Tag"); !strings.Contains(got, "noindex") {
-		t.Errorf("X-Robots-Tag = %q, want noindex on /portfolio", got)
+		t.Errorf("X-Robots-Tag = %q, want noindex on /admin/login", got)
 	}
 	if got := w.Header().Get("Cache-Control"); got != "no-store" {
 		t.Errorf("Cache-Control = %q, want no-store on a gated path", got)

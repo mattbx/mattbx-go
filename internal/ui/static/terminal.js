@@ -208,6 +208,12 @@ function initGrain() {
   // Tear down a prior loop (Air reload / bfcache) before starting another.
   if (typeof canvas._grainStop === "function") canvas._grainStop();
 
+  // Parked while --grain-opacity is 0 (restyle pass).
+  const opacity = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue("--grain-opacity"),
+  );
+  if (!opacity) return;
+
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
@@ -288,33 +294,30 @@ function initGrain() {
   window.addEventListener("pagehide", stop);
 }
 
-// Corner crosses: toggle html.is-top / is-scrolling for centre-arm CSS.
-function initCornerCrosses() {
-  if (!document.querySelector(".corners")) return;
+function initProfileToggle() {
+  const btn = document.querySelector("[data-profile-toggle]");
+  const label = document.querySelector("[data-profile-label]");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    const open = document.documentElement.classList.toggle("profile-open");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (label) label.textContent = open ? "Close" : "Profile";
+  });
+}
+
+function initThemeSwitcher() {
   const root = document.documentElement;
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-  let idle = 0;
-
-  const markTop = () => root.classList.toggle("is-top", window.scrollY < 4);
-
-  const onScroll = () => {
-    markTop();
-    if (reduced.matches) return;
-    root.classList.add("is-scrolling");
-    clearTimeout(idle);
-    idle = setTimeout(() => root.classList.remove("is-scrolling"), 140);
-  };
-
-  const stop = () => {
-    window.removeEventListener("scroll", onScroll);
-    window.removeEventListener("pagehide", stop);
-    clearTimeout(idle);
-    root.classList.remove("is-scrolling", "is-top");
-  };
-
-  markTop();
-  window.addEventListener("scroll", onScroll, { passive: true });
-  window.addEventListener("pagehide", stop);
+  document.querySelectorAll("[data-theme-set]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const theme = btn.getAttribute("data-theme-set");
+      if (!theme) return;
+      root.dataset.theme = theme;
+      document.cookie = `theme=${encodeURIComponent(theme)}; path=/; max-age=31536000; samesite=lax`;
+      document.querySelectorAll("[data-theme-set]").forEach((b) => {
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+      });
+    });
+  });
 }
 
 tickClocks();
@@ -324,11 +327,11 @@ initScramble();
 initMagnetic();
 initHoverFillArm();
 initGrain();
-initCornerCrosses();
+initProfileToggle();
+initThemeSwitcher();
 
-// pagehide tears grain/corners down for bfcache; reinstate on restore.
+// pagehide tears grain down for bfcache; reinstate on restore.
 window.addEventListener("pageshow", (e) => {
   if (!e.persisted) return;
   initGrain();
-  initCornerCrosses();
 });

@@ -2,111 +2,85 @@ package ui
 
 import "github.com/mattbx/mattbx-go/internal/db"
 
+// WorkDetail is the public project page (/work/{slug}).
+templ WorkDetail(p Page, project *db.Project, projects []*db.Project) {
+	@Layout(p) {
+		<article class="work-detail">
+			<nav class="work-detail__nav" aria-label="Projects">
+				<a class="work-detail__back font-mono text-meta text-fg no-underline inline-flex items-center gap-2" href="/">← Work</a>
+				<ol class="ledger ledger--compact">
+					for _, item := range projects {
+						<li class={ "entry", entryCurrent(item.ID == project.ID) }>
+							<a class="entry__link" href={ templ.SafeURL(workPath(item.Slug)) } { current(item.ID == project.ID)... }>
+								<span class="entry__index font-mono">{ projectIndex(item.SortOrder) }</span>
+								<span class="entry__title font-ui">{ item.Title }</span>
+							</a>
+						</li>
+					}
+				</ol>
+			</nav>
+			<div class="work-detail__overview">
+				<header class="work-detail__header">
+					<h1 class="font-ui text-section font-semibold tracking-tight m-0 text-fg">{ project.Title }</h1>
+					if p.IsAdmin {
+						<p class="mt-2 m-0">
+							<a class="font-mono text-meta" href={ templ.SafeURL(editProjectPath(project.ID)) }>Edit</a>
+						</p>
+					}
+				</header>
+				<div class="work-detail__body prose prose--mono">
+					if project.Summary != "" {
+						<p>{ project.Summary }</p>
+					}
+					@templ.Raw(project.BodyHTML)
+					if hasLinks(project) {
+						<p class="work-detail__links">
+							if project.LinkURL != "" {
+								<a href={ templ.SafeURL(project.LinkURL) } rel="noopener noreferrer" target="_blank">Live ↗</a>
+							}
+							if project.RepoURL != "" {
+								if project.LinkURL != "" {
+									{ " · " }
+								}
+								<a href={ templ.SafeURL(project.RepoURL) } rel="noopener noreferrer" target="_blank">Source ↗</a>
+							}
+						</p>
+					}
+				</div>
+			</div>
+			<div class="work-detail__media" aria-hidden="true">
+				<div class="work-detail__media-slot"></div>
+			</div>
+		</article>
+	}
+}
+
+func entryCurrent(active bool) string {
+	if active {
+		return "entry--current"
+	}
+	return ""
+}
+
+// PortfolioIndex kept for admin deep-links during transition; redirects own the public URLs.
 templ PortfolioIndex(p Page, projects []*db.Project) {
 	@Layout(p) {
 		<div class={ classPageHead }>
 			<p class={ classEyebrow }>{ postCount(len(projects), "project", "projects") }</p>
 			<h1 class={ classPageTitle }>Selected work</h1>
-			<p class={ classPageLede }>
-				Thanks for the interest. Here's what I've built, most relevant first.
-			</p>
 		</div>
 		if len(projects) == 0 {
 			<p class={ classEmpty }>No projects published yet.</p>
 		} else {
 			<ol class="ledger">
 				for _, project := range projects {
-					@projectEntry(project)
+					@workEntry(project, false)
 				}
 			</ol>
 		}
 	}
 }
 
-templ projectEntry(project *db.Project) {
-	<li class="entry">
-		<a class="entry__link hover-fill-group" href={ templ.SafeURL("/portfolio/" + project.Slug) }>
-			<span class="entry__meta">
-				<span class="hover-fill">
-					if project.Role != "" {
-						<span>{ project.Role }</span>
-						{ " " }
-					}
-					<time datetime={ machineDate(project.CreatedAt) }>{ project.CreatedAt.Format("2006") }</time>
-					if !project.Published {
-						{ " " }
-						<span class={ classBadge, "text-dim" }>draft</span>
-					}
-				</span>
-			</span>
-			<h2 class="entry__title">
-				<span class="hover-fill">{ project.Title }</span>
-			</h2>
-		</a>
-		if hasLinks(project) {
-			<div class="entry__links">
-				if project.LinkURL != "" {
-					<a href={ templ.SafeURL(project.LinkURL) } rel="noopener noreferrer" target="_blank">Live ↗</a>
-				}
-				if project.RepoURL != "" {
-					if project.LinkURL != "" {
-						{ " · " }
-					}
-					<a href={ templ.SafeURL(project.RepoURL) } rel="noopener noreferrer" target="_blank">Source ↗</a>
-				}
-			</div>
-		}
-	</li>
-}
-
 templ PortfolioProject(p Page, project *db.Project) {
-	@Layout(p) {
-		<article class="leaf">
-			<aside class="rail">
-				if project.Role != "" {
-					<span class="rail__line">
-						<span class="rail__key">Role</span>
-						<span class="rail__value">{ project.Role }</span>
-					</span>
-				}
-				<span class="rail__line">
-					<span class="rail__key">Year</span>
-					<span class="rail__value">{ project.CreatedAt.Format("2006") }</span>
-				</span>
-				if len(project.TechList()) > 0 {
-					<div class="rail__rule"></div>
-					<span class="rail__key">Stack</span>
-					<span class="rail__tags">
-						for _, tech := range project.TechList() {
-							<span class="rail__tag">{ tech }</span>
-						}
-					</span>
-				}
-				if hasLinks(project) {
-					<div class="rail__rule"></div>
-					if project.LinkURL != "" {
-						<a href={ templ.SafeURL(project.LinkURL) } rel="noopener noreferrer" target="_blank">Live ↗</a>
-					}
-					if project.RepoURL != "" {
-						<a href={ templ.SafeURL(project.RepoURL) } rel="noopener noreferrer" target="_blank">Source ↗</a>
-					}
-				}
-				if p.IsAdmin {
-					<div class="rail__rule"></div>
-					<a href={ templ.SafeURL(editProjectPath(project.ID)) }>Edit</a>
-				}
-			</aside>
-			<div>
-				<header class={ classPageHead }>
-					<h1 class={ classPageTitle }>{ project.Title }</h1>
-					if project.Summary != "" {
-						<p class={ classPageLede }>{ project.Summary }</p>
-					}
-				</header>
-				<div class="prose">
-					@templ.Raw(project.BodyHTML)
-				</div>
-			</div>
-		</article>
-	}
+	@WorkDetail(p, project, []*db.Project{project})
 }

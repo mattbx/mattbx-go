@@ -11,23 +11,20 @@ import (
 	"github.com/mattbx/mattbx-go/internal/ui"
 )
 
-// homeRecentPosts caps how many entries the front page shows.
-const homeRecentPosts = 5
-
 func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
 	// Admins see their own drafts inline; everyone else gets published only.
-	posts, err := s.posts.List(r.Context(), s.isAdmin(r), homeRecentPosts)
+	projects, err := s.projects.List(r.Context(), s.isAdmin(r))
 	if err != nil {
 		s.serverError(w, r, err)
 		return
 	}
-	p := s.page(r, "", ui.SiteTagline, "")
-	s.render(w, r, http.StatusOK, ui.Home(p, posts))
+	p := s.page(r, "", ui.SiteTagline, "work")
+	s.render(w, r, http.StatusOK, ui.Home(p, projects))
 }
 
 func (s *Server) handleAbout(w http.ResponseWriter, r *http.Request) {
-	p := s.page(r, "About", "A little about "+ui.SiteName+".", "about")
-	s.render(w, r, http.StatusOK, ui.About(p))
+	// Profile lives in the shell drawer; keep /about as a quiet fallback page.
+	http.Redirect(w, r, "/?profile=1", http.StatusFound)
 }
 
 func (s *Server) handleBlogIndex(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +33,7 @@ func (s *Server) handleBlogIndex(w http.ResponseWriter, r *http.Request) {
 		s.serverError(w, r, err)
 		return
 	}
-	p := s.page(r, "Blog", "Notes on the software I build.", "blog")
+	p := s.page(r, "Other", "Notes on the software I build.", "other")
 	s.render(w, r, http.StatusOK, ui.BlogIndex(p, posts))
 }
 

@@ -10,28 +10,31 @@ import (
 // Routes builds the full route table.
 //
 // Access control lives here and only here: a route is either registered
-// bare (public) or wrapped in requireAdmin/requirePortfolio. Handlers never
-// re-check permissions, so there is one place to audit.
+// bare (public) or wrapped in requireAdmin. Handlers never re-check
+// permissions, so there is one place to audit.
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
 
 	requireAdmin := s.sessions.Require(auth.ScopeAdmin)
-	requirePortfolio := s.sessions.Require(auth.ScopePortfolio)
 
 	// --- Public -----------------------------------------------------------
 	mux.HandleFunc("GET /{$}", s.handleHome)
 	mux.HandleFunc("GET /about", s.handleAbout)
 	mux.HandleFunc("GET /blog", s.handleBlogIndex)
 	mux.HandleFunc("GET /blog/{slug}", s.handleBlogPost)
+	mux.HandleFunc("GET /work/{slug}", s.handleWorkProject)
 	mux.HandleFunc("GET /feed.xml", s.handleFeed)
 	mux.HandleFunc("GET /feed.json", s.handleJSONFeed)
 	mux.HandleFunc("GET /robots.txt", s.handleRobots)
 	mux.HandleFunc("GET /healthz", s.handleHealth)
 	mux.Handle("GET /static/", static.Handler())
 
+	// Legacy portfolio URLs → public work routes.
+	mux.HandleFunc("GET /portfolio", s.redirectPortfolioIndex)
+	mux.HandleFunc("GET /portfolio/{slug}", s.redirectPortfolioProject)
+
 	// Micropub uses its own bearer-token middleware (see micropub.go) rather
-	// than a cookie scope, wired the same way requireAdmin/requirePortfolio
-	// are below — every route's access control still reads from this file.
+	// than a cookie scope — every route's access control still reads from here.
 	requireMicropubToken := s.requireMicropubToken
 	mux.Handle("GET /micropub", requireMicropubToken(http.HandlerFunc(s.handleMicropubQuery)))
 	mux.Handle("POST /micropub", requireMicropubToken(http.HandlerFunc(s.handleMicropubAction)))
@@ -43,13 +46,6 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("POST /admin/login", s.handleAdminLogin)
 	mux.HandleFunc("POST /admin/logout", s.handleAdminLogout)
 	mux.HandleFunc("POST /portfolio/logout", s.handlePortfolioLogout)
-
-	// --- Portfolio (gated) ------------------------------------------------
-	// Registered before the {slug} route so /portfolio/login stays reachable;
-	// ServeMux prefers the more specific pattern regardless of order, but the
-	// grouping keeps the precedence obvious to a reader.
-	mux.Handle("GET /portfolio", requirePortfolio(http.HandlerFunc(s.handlePortfolioIndex)))
-	mux.Handle("GET /portfolio/{slug}", requirePortfolio(http.HandlerFunc(s.handlePortfolioProject)))
 
 	// --- Admin (gated) ----------------------------------------------------
 	mux.Handle("GET /admin", requireAdmin(http.HandlerFunc(s.handleAdminDashboard)))
@@ -105,8 +101,9 @@ func (s *Server) securityHeaders(next http.Handler) http.Handler {
 }
 
 func isPrivatePath(path string) bool {
-	return path == "/admin" || path == "/portfolio" || path == "/micropub" ||
-		hasPrefix(path, "/admin/") || hasPrefix(path, "/portfolio/")
+	return path == "/admin" || path == "/micropub" ||
+		hasPrefix(path, "/admin/") || path == "/portfolio/login" ||
+		hasPrefix(path, "/portfolio/login")
 }
 
 func hasPrefix(s, prefix string) bool {

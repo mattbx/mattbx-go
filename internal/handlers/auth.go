@@ -116,7 +116,7 @@ func (s *Server) destination(r *http.Request, scope auth.Scope) string {
 	if scope == auth.ScopeAdmin {
 		return "/admin"
 	}
-	return "/portfolio"
+	return "/"
 }
 
 func (s *Server) handleAdminLogout(w http.ResponseWriter, r *http.Request) {

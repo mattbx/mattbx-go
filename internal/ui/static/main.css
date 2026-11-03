@@ -32,10 +32,16 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  height: 100%;
+  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+}
 
 body {
   margin: 0;
+  height: 100%;
+  overflow: hidden;
   background: var(--color-page);
   color: var(--color-fg);
   font-family: var(--font-prose);
@@ -57,19 +63,45 @@ a:hover { opacity: 0.8; }
 
 img { max-width: 100%; height: auto; }
 
-/* Shell */
+/* Shell — primary column + optional 390px profile. Each column scrolls
+   independently under a pinned header band. */
 
 .shell {
+  --profile-w: 0px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--profile-w);
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+html.profile-open .shell {
+  --profile-w: min(390px, 100%);
+}
+
+.shell__primary {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
   padding-inline: var(--spacing-gutter, 16px);
 }
 
-.site-header {
+/* Shared header band — keep site + profile chrome on one baseline. */
+.site-header,
+.profile-panel__chrome {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  min-height: 3.25rem; /* 16 + 20 + 16 — clock line-height + padding */
   padding-block: 16px;
   border-bottom: 1px solid var(--color-line);
+  background: var(--color-page);
+  z-index: 2;
 }
 
 .site-header__inner {
@@ -77,6 +109,7 @@ img { max-width: 100%; height: auto; }
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  width: 100%;
 }
 
 .site-header__end {
@@ -89,10 +122,15 @@ img { max-width: 100%; height: auto; }
 
 .site-header__clock {
   font-family: var(--font-mono);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
+  font-size: var(--text-nav);
+  line-height: var(--text-nav--line-height);
   text-transform: uppercase;
   color: var(--color-navigation);
+}
+/* Keep MetaClock children on the header band’s type size. */
+.site-header__clock .text-meta {
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .nav a,
@@ -123,22 +161,30 @@ img { max-width: 100%; height: auto; }
 }
 
 .profile-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: var(--color-navigation);
   font-family: var(--font-mono);
   font-size: var(--text-nav);
   line-height: var(--text-nav--line-height);
+  font-weight: inherit;
   text-transform: uppercase;
+  letter-spacing: var(--text-nav--letter-spacing);
+  padding-block: var(--space-half);
+  text-decoration: none;
 }
 
-.shell__body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+/* Launch lives in the primary header; hide once the panel owns the control. */
+html.profile-open .profile-control--launch {
+  display: none;
+}
+
+.shell__scroll {
   flex: 1 1 auto;
   min-height: 0;
-}
-
-html.profile-open .shell__body {
-  grid-template-columns: minmax(0, 1fr) 390px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .shell__main {
@@ -147,19 +193,65 @@ html.profile-open .shell__body {
 }
 
 .profile-panel {
-  display: none;
-  border-left: 1px solid var(--color-line);
-  padding: 24px 16px;
-  background: var(--color-surface);
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  border-left: 0;
+  background: var(--color-page);
+  visibility: hidden;
+  pointer-events: none;
+  /* Same inline gutter as .shell__primary. */
+  padding-inline: var(--spacing-gutter, 16px);
 }
 
 html.profile-open .profile-panel {
-  display: block;
+  visibility: visible;
+  pointer-events: auto;
+  border-left: 1px solid var(--color-line);
 }
 
-.profile-panel__inner {
-  max-width: 22rem;
+.profile-panel__chrome {
+  flex: 0 0 auto;
+}
+
+.profile-panel__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-block: 12px 40px;
+}
+
+.profile-panel__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-panel__bio {
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.03em;
+  color: var(--color-dim);
+  white-space: pre-wrap;
+}
+
+.profile-panel__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.profile-panel__links a {
+  color: var(--color-dim);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
 }
 
 .site-footer {
@@ -261,8 +353,10 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   .work-detail {
     grid-template-columns: 1fr;
   }
-  html.profile-open .shell__body {
-    grid-template-columns: 1fr;
+  /* Stack the profile under primary on narrow viewports. */
+  html.profile-open .shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(12rem, 45%);
   }
   html.profile-open .profile-panel {
     border-left: 0;

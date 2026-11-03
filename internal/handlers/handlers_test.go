@@ -342,6 +342,40 @@ func TestWorkIsPublic(t *testing.T) {
 	}
 }
 
+func TestProfileOpenDefaults(t *testing.T) {
+	_, h, _, projects := newTestServer(t)
+	if err := projects.Create(context.Background(), &db.Project{
+		Slug: "ledger", Title: "Ledger", Published: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	home := get(h, "/").Body.String()
+	if !strings.Contains(home, `class="profile-open"`) {
+		t.Error("home should open the profile column by default")
+	}
+
+	closed := get(h, "/?profile=0").Body.String()
+	if strings.Contains(closed, `class="profile-open"`) {
+		t.Error("?profile=0 should keep the profile column closed on home")
+	}
+
+	detail := get(h, "/work/ledger").Body.String()
+	if strings.Contains(detail, `class="profile-open"`) {
+		t.Error("work detail should keep the profile column closed by default")
+	}
+
+	blog := get(h, "/blog").Body.String()
+	if strings.Contains(blog, `class="profile-open"`) {
+		t.Error("other/blog should keep the profile column closed by default")
+	}
+
+	forced := get(h, "/blog?profile=1").Body.String()
+	if !strings.Contains(forced, `class="profile-open"`) {
+		t.Error("?profile=1 should open the profile column on other pages")
+	}
+}
+
 // --- Infrastructure -------------------------------------------------------
 
 func TestHealthzChecksTheDatabase(t *testing.T) {

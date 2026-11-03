@@ -2,7 +2,8 @@ package ui
 
 import "github.com/mattbx/mattbx-go/internal/ui/static"
 
-// Layout is the site shell.
+// Layout is the site shell. The profile column sits beside the primary
+// column so header/main/footer widths fluidly shrink when it opens.
 templ Layout(p Page) {
 	<!DOCTYPE html>
 	<html lang="en" data-theme={ p.ThemeAttr() } class={ profileClass(p) }>
@@ -35,61 +36,86 @@ templ Layout(p Page) {
 				@adminBar()
 			}
 			<div class="shell">
-				<header class="site-header">
-					<div class="site-header__inner">
-						<a class="wordmark font-mono text-nav uppercase tracking-normal font-bold text-navigation no-underline" href="/">{ SiteMark }</a>
-						<div class="site-header__end">
-							<div class="site-header__clock hidden md:block">@MetaClock()</div>
-							<nav class="nav font-mono uppercase text-nav text-navigation flex gap-6" aria-label="Primary">
-								<a class="nav-item" data-scramble="link" href="/" { current(p.Nav == "work")... }>Work</a>
-								<a class="nav-item" data-scramble="link" href="/blog" { current(p.Nav == "other" || p.Nav == "blog")... }>Other</a>
-							</nav>
-							<button
-								type="button"
-								class="profile-control font-mono text-nav uppercase tracking-normal text-navigation bg-transparent border-0 cursor-pointer p-0"
-								data-profile-toggle
-								aria-controls="profile-panel"
-								aria-expanded={ profileExpanded(p) }
-							>
-								<span data-profile-label>{ profileLabel(p) }</span>
-							</button>
+				<div class="shell__primary">
+					<header class="site-header">
+						<div class="site-header__inner">
+							<a class="wordmark font-mono text-nav uppercase tracking-normal font-bold text-navigation no-underline" href="/">{ SiteMark }</a>
+							<div class="site-header__end">
+								<div class="site-header__clock hidden md:block">@MetaClock()</div>
+								<nav class="nav font-mono uppercase text-nav text-navigation flex gap-6" aria-label="Primary">
+									<a class="nav-item" data-scramble="link" href="/" { current(p.Nav == "work")... }>Work</a>
+									<a class="nav-item" data-scramble="link" href="/blog" { current(p.Nav == "other" || p.Nav == "blog")... }>Other</a>
+								</nav>
+								<button
+									type="button"
+									class="profile-control profile-control--launch nav-item font-mono text-nav uppercase tracking-normal text-navigation bg-transparent border-0 cursor-pointer p-0"
+									data-profile-toggle
+									data-scramble="link"
+									aria-controls="profile-panel"
+									aria-expanded={ profileExpanded(p) }
+								>
+									<span class="profile-control__chevron" aria-hidden="true">&lt;</span>
+									<span data-label data-profile-label>Profile</span>
+								</button>
+							</div>
 						</div>
+					</header>
+					<div class="shell__scroll">
+						<main class="shell__main" id="main">
+							{ children... }
+						</main>
+						<footer class="site-footer font-mono uppercase text-meta">
+							<span>© { p.Year() } { SiteName }</span>
+							<span class="site-footer__themes" data-theme-switcher aria-label="Theme">
+								for _, t := range themeOptions() {
+									<button
+										type="button"
+										class="theme-swatch"
+										data-theme-set={ t }
+										aria-pressed={ themePressed(p, t) }
+										title={ t }
+									></button>
+								}
+							</span>
+							<span>{ SiteMark }</span>
+						</footer>
 					</div>
-				</header>
-				<div class="shell__body">
-					<main class="shell__main" id="main">
-						{ children... }
-					</main>
-					<aside class="profile-panel" id="profile-panel" aria-label="Profile">
-						@ProfilePanel()
-					</aside>
 				</div>
-				<footer class="site-footer font-mono uppercase text-meta">
-					<span>© { p.Year() } { SiteName }</span>
-					<span class="site-footer__themes" data-theme-switcher aria-label="Theme">
-						for _, t := range themeOptions() {
-							<button
-								type="button"
-								class="theme-swatch"
-								data-theme-set={ t }
-								aria-pressed={ themePressed(p, t) }
-								title={ t }
-							></button>
-						}
-					</span>
-					<span>{ SiteMark }</span>
-				</footer>
+				<aside
+					class="profile-panel"
+					id="profile-panel"
+					aria-label="Profile"
+					{ profilePanelAttrs(p)... }
+				>
+					@ProfilePanel(p)
+				</aside>
 			</div>
 		</body>
 	</html>
 }
 
-templ ProfilePanel() {
-	<div class="profile-panel__inner font-mono text-body text-fg">
-		<p class="profile-panel__bio m-0">{ SiteBio }</p>
-		<p class="profile-panel__links mt-3 m-0">
-			<a class="hover-underline" href={ templ.SafeURL(SiteContact) }>Get in touch ↗</a>
-		</p>
+templ ProfilePanel(p Page) {
+	<div class="profile-panel__chrome">
+		<button
+			type="button"
+			class="profile-control profile-control--close nav-item font-mono text-nav uppercase tracking-normal text-navigation bg-transparent border-0 cursor-pointer p-0"
+			data-profile-toggle
+			data-scramble="link"
+			aria-controls="profile-panel"
+			aria-expanded={ profileExpanded(p) }
+		>
+			<span data-label data-profile-label>Profile</span>
+			<span class="profile-control__chevron" aria-hidden="true">&gt;</span>
+		</button>
+	</div>
+	<div class="profile-panel__body font-mono text-body text-dim">
+		<div class="profile-panel__intro">
+			<p class="profile-panel__bio m-0">{ SiteBio }</p>
+			<p class="profile-panel__links m-0">
+				<a class="hover-underline" href={ templ.SafeURL(SiteContact) }>Get in touch ↗</a>
+				<a class="hover-underline" href={ templ.SafeURL(SiteLinkedIn) } rel="noopener noreferrer" target="_blank">LinkedIn ↗</a>
+			</p>
+		</div>
 	</div>
 }
 
@@ -116,9 +142,9 @@ func current(active bool) templ.Attributes {
 
 func bodyClass(p Page) string {
 	if p.IsAdmin {
-		return "is-admin flex flex-col min-h-screen"
+		return "is-admin flex flex-col h-full"
 	}
-	return "flex flex-col min-h-screen"
+	return "flex flex-col h-full"
 }
 
 func profileClass(p Page) string {
@@ -135,11 +161,11 @@ func profileExpanded(p Page) string {
 	return "false"
 }
 
-func profileLabel(p Page) string {
+func profilePanelAttrs(p Page) templ.Attributes {
 	if p.ProfileOpen {
-		return "Close"
+		return templ.Attributes{"aria-hidden": "false"}
 	}
-	return "Profile"
+	return templ.Attributes{"aria-hidden": "true", "inert": ""}
 }
 
 func themePressed(p Page, theme string) string {

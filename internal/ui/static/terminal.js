@@ -294,14 +294,24 @@ function initGrain() {
   window.addEventListener("pagehide", stop);
 }
 
-function initProfileToggle() {
-  const btn = document.querySelector("[data-profile-toggle]");
-  const label = document.querySelector("[data-profile-label]");
-  if (!btn) return;
-  btn.addEventListener("click", () => {
-    const open = document.documentElement.classList.toggle("profile-open");
+function setProfileOpen(open) {
+  const root = document.documentElement;
+  const panel = document.getElementById("profile-panel");
+  root.classList.toggle("profile-open", open);
+  document.querySelectorAll("[data-profile-toggle]").forEach((btn) => {
     btn.setAttribute("aria-expanded", open ? "true" : "false");
-    if (label) label.textContent = open ? "Close" : "Profile";
+  });
+  if (!panel) return;
+  panel.setAttribute("aria-hidden", open ? "false" : "true");
+  if (open) panel.removeAttribute("inert");
+  else panel.setAttribute("inert", "");
+}
+
+function initProfileToggle() {
+  document.querySelectorAll("[data-profile-toggle]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setProfileOpen(!document.documentElement.classList.contains("profile-open"));
+    });
   });
 }
 

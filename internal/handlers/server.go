@@ -46,6 +46,16 @@ func (s *Server) page(r *http.Request, title, description, nav string) ui.Page {
 	if c, err := r.Cookie("theme"); err == nil && ui.ValidThemes[c.Value] {
 		theme = c.Value
 	}
+	// Home opens the profile column by default; work/other stay closed.
+	// ?profile=1|0 overrides for deep links (e.g. /about → /?profile=1).
+	profileOpen := r.URL.Path == "/"
+	switch r.URL.Query().Get("profile") {
+	case "1":
+		profileOpen = true
+	case "0":
+		profileOpen = false
+	}
+
 	return ui.Page{
 		Title:       title,
 		Description: description,
@@ -54,7 +64,7 @@ func (s *Server) page(r *http.Request, title, description, nav string) ui.Page {
 		BaseURL:     s.cfg.BaseURL,
 		Path:        r.URL.Path,
 		Theme:       theme,
-		ProfileOpen: r.URL.Query().Get("profile") == "1",
+		ProfileOpen: profileOpen,
 	}
 }
 

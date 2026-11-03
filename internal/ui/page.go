@@ -18,6 +18,7 @@ const (
 	SiteTagline  = "Work & Other Things"
 	SiteHeroCode = "#224013"
 	SiteContact  = "mailto:hello@mattbx.co"
+	SiteLinkedIn = "https://www.linkedin.com/in/mattbarron"
 	SiteBio      = "I design and build digital products and things — from interfaces to the systems behind them. Based in Sydney AU. Available for work opportunities."
 )
 

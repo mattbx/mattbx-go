@@ -23,8 +23,8 @@ func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleAbout(w http.ResponseWriter, r *http.Request) {
-	// Profile lives in the shell drawer; keep /about as a quiet fallback page.
-	http.Redirect(w, r, "/?profile=1", http.StatusFound)
+	// Profile lives in the home sidebar (open by default on /).
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func (s *Server) handleBlogIndex(w http.ResponseWriter, r *http.Request) {

@@ -12,12 +12,20 @@ Plans in `docs/plans/` build on this. If code and this file disagree, ask before
   don't rebuild them per page.
 - **House style:** short hyphens, never em dashes - in site copy, docs and commit messages.
 
+## Navigation
+
+- The nav underline means "you are in this section" - nothing else.
+- **Home has no nav item.** The `mattbx.co` wordmark links home and never shows an active state.
+- **Work** → `/work`; underlined on `/work/...`. **Other** → its page; underlined on its list and
+  posts.
+
 ## Pages
 
 | Page | URL | Job |
 |---|---|---|
-| Home | `/` | Hero + the work list. Each row links to its project |
-| Work detail | `/work/{slug}` | One project's info and images, with a left-hand nav listing all projects |
+| Home | `/` | Hero + the work list. Each row links to its project. No nav item - the wordmark links home |
+| Work | `/work` | Opens the top project (row 01) - 302 to its `/work/{slug}`. The "Work" nav item lands here |
+| Work detail | `/work/{slug}` | One project's info and images, with a left-hand list of all projects |
 | Other | `/blog` today (URL undecided) | Writing and open-source work - **not yet defined, needs a rethink** |
 | Profile | drawer, not a page | Bio + contact links; open by default on `/`, closed elsewhere |
 
@@ -34,8 +42,10 @@ Plans in `docs/plans/` build on this. If code and this file disagree, ask before
   field. Free to play with symbols and formats; it doesn't need to be readable.
 - **Format**: a real field - one short label per project. Confirmed labels: **Web app, Brand,
   Design system**. Full set to finalise (the mock also shows Engineering, Website, Marketing).
-- **Work detail layout (from the mock):** left = "← Work" back link + the project list (same row
-  as home); middle = client heading + description; right = project heading + images.
+- **Work detail layout (from the mock):** left = a plain "Work" title + the project list (same
+  row as home, current project marked); middle = client heading + description; right = project
+  heading + images. The three column titles (Work / client / project) read as one row of
+  headings. "Work" is a title, not a link or back button.
 - Extras already in the data (summary, role, tech, live link, repo link) - which ones show is
   decided in the browser.
 - Work rows (home and work-detail nav) use the same keyframed row hover as the posts list.

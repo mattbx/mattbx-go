@@ -389,8 +389,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   top: 16px;
 }
 
-.work-detail__back {
-  display: inline-flex;
+.work-detail__nav-title {
   margin-bottom: 16px;
 }
 

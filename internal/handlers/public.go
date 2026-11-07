@@ -18,7 +18,8 @@ func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
 		s.serverError(w, r, err)
 		return
 	}
-	p := s.page(r, "", ui.SiteTagline, "work")
+	// Home is not a section: no nav item is current here.
+	p := s.page(r, "", ui.SiteTagline, "")
 	s.render(w, r, http.StatusOK, ui.Home(p, projects))
 }
 

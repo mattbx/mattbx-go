@@ -7,7 +7,7 @@ templ WorkDetail(p Page, project *db.Project, projects []*db.Project) {
 	@Layout(p) {
 		<article class="work-detail">
 			<nav class="work-detail__nav" aria-label="Projects">
-				<a class="work-detail__back font-mono text-meta text-fg no-underline inline-flex items-center gap-2" href="/">← Work</a>
+				<h2 class="work-detail__nav-title font-ui text-section font-semibold tracking-tight m-0 text-fg">Work</h2>
 				<ol class="ledger ledger--compact">
 					for _, item := range projects {
 						<li class={ "entry", entryCurrent(item.ID == project.ID) }>

@@ -22,6 +22,8 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /about", s.handleAbout)
 	mux.HandleFunc("GET /blog", s.handleBlogIndex)
 	mux.HandleFunc("GET /blog/{slug}", s.handleBlogPost)
+	mux.HandleFunc("GET /work", s.handleWorkIndex)
+	mux.HandleFunc("GET /work/{$}", s.handleWorkIndex)
 	mux.HandleFunc("GET /work/{slug}", s.handleWorkProject)
 	mux.HandleFunc("GET /feed.xml", s.handleFeed)
 	mux.HandleFunc("GET /feed.json", s.handleJSONFeed)

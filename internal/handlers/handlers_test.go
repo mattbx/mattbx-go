@@ -342,6 +342,75 @@ func TestWorkIsPublic(t *testing.T) {
 	}
 }
 
+func TestWorkIndexRedirectsToTopProject(t *testing.T) {
+	_, h, _, projects := newTestServer(t)
+
+	// Out-of-order inserts: /work must pick the lowest sort_order, not
+	// insertion order.
+	for _, p := range []*db.Project{
+		{Slug: "second", Title: "Second", SortOrder: 2, Published: true},
+		{Slug: "first", Title: "First", SortOrder: 1, Published: true},
+	} {
+		if err := projects.Create(context.Background(), p); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	w := get(h, "/work")
+	if w.Code != http.StatusFound {
+		t.Fatalf("GET /work: status %d, want 302", w.Code)
+	}
+	if loc := w.Header().Get("Location"); loc != "/work/first" {
+		t.Errorf("Location = %q, want /work/first", loc)
+	}
+
+	w = get(h, "/work/")
+	if w.Code != http.StatusFound {
+		t.Fatalf("GET /work/: status %d, want 302", w.Code)
+	}
+	if loc := w.Header().Get("Location"); loc != "/work/first" {
+		t.Errorf("Location = %q, want /work/first", loc)
+	}
+}
+
+func TestWorkIndexWithNoProjectsRedirectsHome(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+
+	w := get(h, "/work")
+	if w.Code != http.StatusFound {
+		t.Fatalf("GET /work: status %d, want 302", w.Code)
+	}
+	if loc := w.Header().Get("Location"); loc != "/" {
+		t.Errorf("Location = %q, want /", loc)
+	}
+}
+
+func TestNavActiveStates(t *testing.T) {
+	_, h, _, projects := newTestServer(t)
+	if err := projects.Create(context.Background(), &db.Project{
+		Slug: "ledger", Title: "Ledger", SortOrder: 1, Published: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Home is not a section: no nav item is current there.
+	home := get(h, "/").Body.String()
+	if strings.Contains(home, `aria-current`) {
+		t.Error("home should mark no nav item current")
+	}
+
+	// Work detail marks the Work nav item (and the current list entry).
+	detail := get(h, "/work/ledger").Body.String()
+	if !strings.Contains(detail, `href="/work" aria-current="page"`) {
+		t.Error("work detail should mark the Work nav item current")
+	}
+
+	// The nav links to /work, not /.
+	if !strings.Contains(home, `href="/work"`) {
+		t.Error("nav Work item should link to /work")
+	}
+}
+
 func TestProfileOpenDefaults(t *testing.T) {
 	_, h, _, projects := newTestServer(t)
 	if err := projects.Create(context.Background(), &db.Project{

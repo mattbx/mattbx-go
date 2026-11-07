@@ -88,6 +88,8 @@ html.profile-open .shell {
   height: 100%;
   overflow: hidden;
   padding-inline: var(--spacing-gutter, 16px);
+  /* cqi for the hero resolves against this column's content box. */
+  container-type: inline-size;
 }
 
 /* Shared header band — keep site + profile chrome on one baseline. */
@@ -334,7 +336,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 }
 
 .hero__line + .hero__line {
-  margin-top: var(--hero-overlap, -12px);
+  margin-top: var(--hero-overlap, -0.12em);
 }
 
 .hero__contact a {

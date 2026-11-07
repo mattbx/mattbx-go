@@ -46,7 +46,8 @@
   --crt-phosphor: #3ee9b7;
   --crt-phosphor-dim: #27886c;
 
-  --hero-overlap: -12px;
+  /* Proportional to the display size: 12px / 101.5px at the Figma frame. */
+  --hero-overlap: -0.12em;
 
   --ease-wipe: cubic-bezier(0.4, 0, 0, 1);
   --ease-underline: cubic-bezier(0.65, 0.05, 0.36, 1);
@@ -113,12 +114,11 @@ html[data-theme="blueish-2"] {
   /* ~1512 desktop reference; content uses full width with 16px gutter. */
   --container-site: 94.5rem;
 
-  /* Desktop-first type from Figma; light clamp floors for smaller viewports. */
-  --text-hero: clamp(3rem, 6.7vw, 6.346rem);
-  --text-hero--line-height: 1;
-  --text-hero--letter-spacing: -0.03em;
-
-  --text-display: clamp(2.5rem, 6.7vw, 6.346rem);
+  /* Desktop-first type from Figma; light clamp floors for smaller viewports.
+     Display scales with the primary column (container query units): 101.5px
+     hero at the Figma 1090px content width → 9.31cqi. 100cqi max keeps the
+     clamp valid with effectively no cap. */
+  --text-display: clamp(2rem, 9.31cqi, 100cqi);
   --text-display--line-height: 1;
   --text-display--letter-spacing: -0.03em;
 

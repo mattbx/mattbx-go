@@ -171,6 +171,18 @@ html.profile-open .shell {
   background: currentColor;
 }
 
+/* Vendored Heroicons (icons.templ): 1em so they track the text size. */
+.icon {
+  width: 1em;
+  height: 1em;
+  display: block;
+}
+
+.profile-control__chevron {
+  display: inline-flex;
+  align-items: center;
+}
+
 .profile-control {
   display: inline-flex;
   align-items: center;

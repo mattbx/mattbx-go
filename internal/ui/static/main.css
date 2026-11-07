@@ -66,7 +66,15 @@ img { max-width: 100%; height: auto; }
 /* Shell — primary column + optional 390px profile. Each column scrolls
    independently under a pinned header band. */
 
+/* Registered so the drawer width (and the cqi hero with it) can animate. */
+@property --profile-w {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 .shell {
+  --profile-width: 390px;
   --profile-w: 0px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--profile-w);
@@ -74,10 +82,11 @@ img { max-width: 100%; height: auto; }
   min-height: 0;
   width: 100%;
   overflow: hidden;
+  transition: --profile-w 400ms var(--ease-wipe);
 }
 
 html.profile-open .shell {
-  --profile-w: min(390px, 100%);
+  --profile-w: min(var(--profile-width), 100%);
 }
 
 .shell__primary {
@@ -207,15 +216,21 @@ html.profile-open .profile-control--launch {
   pointer-events: none;
   /* Same inline gutter as .shell__primary. */
   padding-inline: var(--spacing-gutter, 16px);
+  /* Stay visible until the close animation finishes. */
+  transition: visibility 0s linear 400ms;
 }
 
 html.profile-open .profile-panel {
   visibility: visible;
   pointer-events: auto;
+  transition-delay: 0s;
 }
 
+/* Fixed inline size so content slides into view instead of re-wrapping
+   while the drawer animates. */
 .profile-panel__chrome {
   flex: 0 0 auto;
+  inline-size: calc(var(--profile-width) - 2 * var(--spacing-gutter, 16px));
 }
 
 .profile-panel__body {
@@ -225,6 +240,7 @@ html.profile-open .profile-panel {
   overflow-x: hidden;
   overflow-y: auto;
   padding-block: 12px 40px;
+  inline-size: calc(var(--profile-width) - 2 * var(--spacing-gutter, 16px));
 }
 
 .profile-panel__intro {
@@ -385,6 +401,15 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
     border-left: 0;
     border-top: 1px solid var(--color-line);
   }
+  /* Stacked drawer is full-width; drop the slide-in fixed width. */
+  .profile-panel__chrome,
+  .profile-panel__body {
+    inline-size: auto;
+  }
+  /* The stacked layout snaps rows anyway — don't animate the width var. */
+  .shell {
+    transition: none;
+  }
 }
 
 .admin-bar a { color: var(--color-fg); text-decoration: none; }
@@ -476,6 +501,10 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .shell,
+  .profile-panel {
+    transition: none;
+  }
   .hover-underline::before { transition: none; }
   .hover-fill,
   .hover-fill-group.is-armed:not(:hover):not(:focus-within) .hover-fill {

@@ -116,9 +116,10 @@ html[data-theme="blueish-2"] {
 
   /* Desktop-first type from Figma; light clamp floors for smaller viewports.
      Display scales with the primary column (container query units): 101.5px
-     hero at the Figma 1090px content width → 9.31cqi. 100cqi max keeps the
-     clamp valid with effectively no cap. */
-  --text-display: clamp(2rem, 9.31cqi, 100cqi);
+     hero at the Figma 1090px content width → 9.31cqi. Above that width the
+     shallower 2.114rem + 6.21cqi line takes over (they meet at 1090px), so
+     growth past the Figma frame is cut by a third. */
+  --text-display: max(2rem, min(9.31cqi, calc(2.114rem + 6.21cqi)));
   --text-display--line-height: 1;
   --text-display--letter-spacing: -0.03em;
 

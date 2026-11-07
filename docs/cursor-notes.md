@@ -29,6 +29,7 @@ Session notes for the mattbx.co-final restyle. Not a product README.
 - Headers pinned; primary and aside scroll independently.
 - Footer pinned under the scroll pane from md up; below md it flows with content.
 - Theme cookie + footer swatches; first paint from cookie in Go.
+- `--cross-color` is cursor-only now (corners gone); mixes from `--text-primary` per theme.
 - No media/upload pipeline, horse graphic, or full profile/resume sections this pass.
 
 ## Files touched (high level)
@@ -38,21 +39,21 @@ Session notes for the mattbx.co-final restyle. Not a product README.
 - CSS / JS: `static/main.css`, `terminal.js`, `cursor.js`.
 - Routes / handlers: `router.go`, `public.go`, `portfolio.go`, `server.go`, `admin.go`, `auth.go`, tests.
 - Removed: `corners.templ`.
+- Notes: `docs/cursor-notes.md`.
 
 ## Working
 
 - Public Work home + detail; portfolio 301s; about → `/`.
 - Profile column: gutter-aligned chrome, scramble on Profile control, independent scroll.
-- Themes switch and persist; Inter loads; cursor restored after `--cross-color` was zeroed with corners.
+- Themes switch and persist; Inter loads; custom cursor visible again after `--cross-color` restore.
+- Footer anchored on md+; below md rides with main content.
 - Tests green for public work / redirects / profile defaults.
 
 ## Unfinished / fragile
 
-- Uncommitted locally after last push: footer pin (md+), cursor `--cross-color` fix, related layout/CSS.
 - Profile body is bio + contact/LinkedIn only - Figma “Something” resume sections not filled.
 - Work detail media slot is empty placeholder; no screenshots/uploads.
 - PP Fraktion still drop-in on disk / Disco volume - stack falls back without it.
-- Theme trail color in `cursor.js` re-reads CSS each paint; fine for now.
 - Mobile is acceptable stack, not pixel-matched to Figma.
 - Blog (“Other”) uses new shell/tokens only - no dedicated Figma frame.
 - `SiteLinkedIn` in `page.go` may need a real URL check.
@@ -61,7 +62,7 @@ Session notes for the mattbx.co-final restyle. Not a product README.
 ## Open questions
 
 - Persist profile open/closed across navigations (cookie), or keep per-route defaults?
-- Commit/push footer + cursor fixes before PR?
 - How much real profile/resume copy vs placeholders?
 - When to wire project media, and whether Micropub gets a media endpoint?
 - Drop unused portfolio auth entirely in a later pass?
+- Open a PR from `feat/redesign` when ready?

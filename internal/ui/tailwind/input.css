@@ -36,7 +36,7 @@
   --grain-tiles: 6;
 
   /* Cursor crosshairs + trail (corners removed; this token is cursor-only now). */
-  --cross-color: color-mix(in srgb, var(--text-primary) 20%, transparent);
+  --cross-color: color-mix(in srgb, var(--text-primary) 12%, transparent);
   --cross-arm: 0px;
   --cross-arm-rest: 0px;
   --cross-inset: 0px;

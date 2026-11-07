@@ -261,19 +261,22 @@ html.profile-open .profile-panel {
   gap: 12px;
 }
 
-.profile-panel__bio {
-  font-size: 12px;
-  line-height: 18px;
-  letter-spacing: -0.03em;
-  color: var(--color-dim);
-  white-space: pre-wrap;
+.profile-panel__intro-text p {
+  margin: 0;
+}
+.profile-panel__intro-text p + p {
+  margin-top: var(--space-2);
+}
+/* Title line a step brighter than body for scanning. */
+.profile-panel__intro-text p:first-child {
+  color: var(--color-fg);
 }
 
 .profile-panel__links {
   display: flex;
   flex-wrap: wrap;
   gap: 12px 24px;
-  font-size: 12px;
+  font-size: var(--text-body);
   line-height: 1;
 }
 
@@ -281,6 +284,72 @@ html.profile-open .profile-panel {
   color: var(--color-dim);
   text-decoration: underline;
   text-underline-offset: 0.18em;
+}
+
+/* Resume sections: thin rule, small mono heading, body on the drawer's
+   current mono/dim style. Company names (h3) and role lines (strong) a
+   step brighter than body for scanning. */
+.profile-panel__section {
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-line);
+}
+
+.profile-panel__heading {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+
+.profile-panel__section h3 {
+  margin: var(--space-4) 0 0;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: 700;
+  color: var(--color-fg);
+}
+.profile-panel__section h3:first-of-type {
+  margin-top: 0;
+}
+
+.profile-panel__section p {
+  margin: var(--space-2) 0 0;
+}
+.profile-panel__section p:first-child {
+  margin-top: 0;
+}
+
+.profile-panel__section strong {
+  color: var(--color-fg);
+  font-weight: 700;
+}
+
+/* Small square markers to match the work page bullets; hanging indent. */
+.profile-panel__section ul {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+}
+.profile-panel__section li {
+  position: relative;
+  padding-left: 1.1em;
+}
+.profile-panel__section li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+}
+.profile-panel__section li + li {
+  margin-top: var(--space-2);
 }
 
 .site-footer {

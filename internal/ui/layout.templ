@@ -110,12 +110,21 @@ templ ProfilePanel(p Page) {
 	</div>
 	<div class="profile-panel__body font-mono text-body text-dim">
 		<div class="profile-panel__intro">
-			<p class="profile-panel__bio m-0">{ SiteBio }</p>
+			<div class="profile-panel__intro-text">
+				@templ.Raw(loadProfile().IntroHTML)
+			</div>
 			<p class="profile-panel__links m-0">
 				<a class="hover-underline" href={ templ.SafeURL(SiteContact) }>Get in touch ↗</a>
 				<a class="hover-underline" href={ templ.SafeURL(SiteLinkedIn) } rel="noopener noreferrer" target="_blank">LinkedIn ↗</a>
+				<a class="hover-underline" href={ templ.SafeURL(SiteGitHub) } rel="noopener noreferrer" target="_blank">GitHub ↗</a>
 			</p>
 		</div>
+		for i, section := range loadProfile().Sections {
+			<section class="profile-panel__section" aria-labelledby={ profileSectionID(i) }>
+				<h2 class="profile-panel__heading" id={ profileSectionID(i) }>{ section.Title }</h2>
+				@templ.Raw(section.HTML)
+			</section>
+		}
 	</div>
 }
 

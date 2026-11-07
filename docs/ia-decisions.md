@@ -27,7 +27,7 @@ Plans in `docs/plans/` build on this. If code and this file disagree, ask before
 | Work | `/work` | Opens the top project (row 01) - 302 to its `/work/{slug}`. The "Work" nav item lands here |
 | Work detail | `/work/{slug}` | One project's info and images, with a left-hand list of all projects |
 | Other | `/blog` today (URL undecided) | Writing and open-source work - **not yet defined, needs a rethink** |
-| Profile | drawer, not a page | Bio + contact links; open by default on `/`, closed elsewhere |
+| Profile | drawer, not a page | Resume: intro (title, location, summary) + links (Get in touch, LinkedIn, GitHub), then sections - Experience, Earlier career, Skills, Selected clients. Content in `internal/ui/content/profile.md`. Open by default on `/`, closed elsewhere |
 
 ## Work - agreed
 

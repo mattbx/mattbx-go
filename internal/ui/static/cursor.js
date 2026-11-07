@@ -11,7 +11,7 @@
   const IDLE_MS = 2000;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-  const color =
+  const trailColor = () =>
     getComputedStyle(document.documentElement).getPropertyValue("--cross-color").trim() ||
     "rgb(5 5 5 / 0.72)";
 
@@ -111,7 +111,7 @@
     for (let i = 1; i < n; i++) ctx.lineTo(left[i].x, left[i].y);
     for (let i = n - 1; i >= 0; i--) ctx.lineTo(right[i].x, right[i].y);
     ctx.closePath();
-    ctx.fillStyle = color;
+    ctx.fillStyle = trailColor();
     ctx.fill();
   };
 

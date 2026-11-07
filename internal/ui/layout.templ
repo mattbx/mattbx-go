@@ -64,22 +64,22 @@ templ Layout(p Page) {
 						<main class="shell__main" id="main">
 							{ children... }
 						</main>
-						<footer class="site-footer font-mono uppercase text-meta">
-							<span>© { p.Year() } { SiteName }</span>
-							<span class="site-footer__themes" data-theme-switcher aria-label="Theme">
-								for _, t := range themeOptions() {
-									<button
-										type="button"
-										class="theme-swatch"
-										data-theme-set={ t }
-										aria-pressed={ themePressed(p, t) }
-										title={ t }
-									></button>
-								}
-							</span>
-							<span>{ SiteMark }</span>
-						</footer>
 					</div>
+					<footer class="site-footer font-mono uppercase text-meta">
+						<span>© { p.Year() } { SiteName }</span>
+						<span class="site-footer__themes" data-theme-switcher aria-label="Theme">
+							for _, t := range themeOptions() {
+								<button
+									type="button"
+									class="theme-swatch"
+									data-theme-set={ t }
+									aria-pressed={ themePressed(p, t) }
+									title={ t }
+								></button>
+							}
+						</span>
+						<span>{ SiteMark }</span>
+					</footer>
 				</div>
 				<aside
 					class="profile-panel"

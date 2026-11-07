@@ -210,7 +210,6 @@ html.profile-open .profile-control--launch {
 html.profile-open .profile-panel {
   visibility: visible;
   pointer-events: auto;
-  border-left: 1px solid var(--color-line);
 }
 
 .profile-panel__chrome {
@@ -259,9 +258,31 @@ html.profile-open .profile-panel {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  flex: 0 0 auto;
   padding-block: 16px;
   border-top: 1px solid var(--color-line);
   color: var(--color-dim);
+  background: var(--color-page);
+  z-index: 2;
+}
+
+/* Below md keep the footer in normal document flow under main.
+   From md up it stays pinned to the bottom of the primary column. */
+@media (max-width: 47.999rem) {
+  .shell__scroll {
+    display: contents;
+  }
+  .site-footer {
+    flex: 0 0 auto;
+  }
+  .shell__primary {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  /* Header scrolls away with content below md (not a second sticky bar). */
+  .site-header {
+    position: static;
+  }
 }
 
 .site-footer__themes {

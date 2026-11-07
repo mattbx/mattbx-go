@@ -35,7 +35,8 @@
   --grain-fps: 11;
   --grain-tiles: 6;
 
-  --cross-color: transparent;
+  /* Cursor crosshairs + trail (corners removed; this token is cursor-only now). */
+  --cross-color: color-mix(in srgb, var(--text-primary) 20%, transparent);
   --cross-arm: 0px;
   --cross-arm-rest: 0px;
   --cross-inset: 0px;
@@ -77,12 +78,12 @@ html[data-theme="green"] {
 
 html[data-theme="dark-green"] {
   --bg-primary: #00704b;
-  --text-primary: #04110c;
-  --text-secondary: rgb(4 17 12 / 0.6);
-  --text-muted: rgb(4 17 12 / 0.4);
-  --text-navigation: #04110c;
-  --border-subtle: rgb(52 52 52 / 0.5);
-  --surface-secondary: #071912;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgb(255 255 255 / 0.6);
+  --text-muted: rgb(255 255 255 / 0.4);
+  --text-navigation: #FFFFFF;
+  --border-subtle: rgb(255 255 255 / 0.2);
+  --surface-secondary: #006040;
   --danger: #a33a2b;
 }
 

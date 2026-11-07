@@ -11,9 +11,9 @@ templ WorkDetail(p Page, project *db.Project, projects []*db.Project) {
 				<ol class="ledger ledger--compact">
 					for _, item := range projects {
 						<li class={ "entry", entryCurrent(item.ID == project.ID) }>
-							<a class="entry__link" href={ templ.SafeURL(workPath(item.Slug)) } { current(item.ID == project.ID)... }>
-								<span class="entry__index font-mono">{ projectIndex(item.SortOrder) }</span>
-								<span class="entry__title font-ui">{ item.Title }</span>
+							<a class="entry__link hover-fill-group" href={ templ.SafeURL(workPath(item.Slug)) } { current(item.ID == project.ID)... }>
+								<span class="entry__index font-mono"><span class="hover-fill">{ projectIndex(item.SortOrder) }</span></span>
+								<span class="entry__title font-ui"><span class="hover-fill">{ item.Title }</span></span>
 							</a>
 						</li>
 					}

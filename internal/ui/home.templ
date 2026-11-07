@@ -32,17 +32,17 @@ templ Home(p Page, projects []*db.Project) {
 // workEntry is the numbered project row. Compact drops reference/format columns.
 templ workEntry(project *db.Project, compact bool) {
 	<li class="entry">
-		<a class="entry__link" href={ templ.SafeURL(workPath(project.Slug)) }>
-			<span class="entry__index font-mono">{ projectIndex(project.SortOrder) }</span>
-			<span class="entry__title font-ui">{ project.Title }</span>
+		<a class="entry__link hover-fill-group" href={ templ.SafeURL(workPath(project.Slug)) }>
+			<span class="entry__index font-mono"><span class="hover-fill">{ projectIndex(project.SortOrder) }</span></span>
+			<span class="entry__title font-ui"><span class="hover-fill">{ project.Title }</span></span>
 			if !compact {
 				<span class="entry__ref font-mono uppercase text-dim">
 					if project.Role != "" {
-						{ project.Role }
+						<span class="hover-fill">{ project.Role }</span>
 					}
 				</span>
 				<span class="entry__format font-mono uppercase text-dim">
-					{ projectFormat(project) }
+					<span class="hover-fill">{ projectFormat(project) }</span>
 				</span>
 			}
 			if !project.Published {

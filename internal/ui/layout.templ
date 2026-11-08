@@ -40,8 +40,8 @@ templ Layout(p Page) {
 					<header class="site-header">
 						<div class="site-header__inner">
 							<a class="wordmark font-mono text-nav uppercase tracking-normal font-bold text-navigation no-underline" data-scramble="link" href="/">{ SiteMark }</a>
+							<div class="site-header__clock hidden md:block">@MetaClock()</div>
 							<div class="site-header__end">
-								<div class="site-header__clock hidden md:block">@MetaClock()</div>
 								<nav class="nav font-mono uppercase text-nav text-navigation flex gap-24" aria-label="Primary">
 									<a class="nav-item" data-scramble="link" href="/work" { current(p.Nav == "work")... }>Work</a>
 									<a class="nav-item" data-scramble="link" href="/blog" { current(p.Nav == "other" || p.Nav == "blog")... }>Other</a>

@@ -298,11 +298,16 @@ function initGrain() {
 // Profile link is a plain link to /profile.
 const profileDesktop = window.matchMedia("(min-width: 64rem)");
 
+// /profile renders no drawer; there the link is just a link.
+function hasProfileDrawer() {
+  return document.getElementById("profile-panel") !== null;
+}
+
 // The nav link only describes the drawer while it can open one.
 function syncProfileLinks() {
   const open = document.documentElement.classList.contains("profile-open");
   document.querySelectorAll("a[data-profile-toggle]").forEach((link) => {
-    if (profileDesktop.matches) {
+    if (profileDesktop.matches && hasProfileDrawer()) {
       link.setAttribute("aria-controls", "profile-panel");
       link.setAttribute("aria-expanded", open ? "true" : "false");
     } else {
@@ -331,7 +336,7 @@ function initProfileToggle() {
     el.addEventListener("click", (e) => {
       if (el.tagName === "A") {
         // Small screens, and new-tab clicks, follow the link to /profile.
-        if (!profileDesktop.matches) return;
+        if (!profileDesktop.matches || !hasProfileDrawer()) return;
         if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         e.preventDefault();
       }

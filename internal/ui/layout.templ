@@ -71,14 +71,17 @@ templ Layout(p Page) {
 						<span>{ SiteMark }</span>
 					</footer>
 				</div>
-				<aside
-					class="profile-panel"
-					id="profile-panel"
-					aria-label="Profile"
-					{ profilePanelAttrs(p)... }
-				>
-					@ProfilePanel(p)
-				</aside>
+				// /profile is the resume already: no drawer, so it renders once.
+				if p.Nav != "profile" {
+					<aside
+						class="profile-panel"
+						id="profile-panel"
+						aria-label="Profile"
+						{ profilePanelAttrs(p)... }
+					>
+						@ProfilePanel(p)
+					</aside>
+				}
 			</div>
 		</body>
 	</html>

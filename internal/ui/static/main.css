@@ -28,6 +28,12 @@
 
   --radius: 3px;
   --tap: 44px;
+
+  /* Header band height (16 + 20 + 16: clock line-height + padding). */
+  --header-h: 3.25rem;
+  /* What the sticky header covers at the top of the scroller: nothing from
+     64rem (the header sits outside .shell__scroll), --header-h below it. */
+  --sticky-top: 0px;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -111,7 +117,7 @@ img { max-width: 100%; height: auto; }
   align-items: center;
   box-sizing: border-box;
   flex: 0 0 auto;
-  min-height: 3.25rem; /* 16 + 20 + 16 — clock line-height + padding */
+  min-height: var(--header-h);
   padding-block: 16px;
   border-bottom: 1px solid var(--color-line);
   background: var(--color-page);
@@ -310,7 +316,7 @@ html.profile-open .profile-panel {
 .profile-panel__heading {
   margin: 0 0 var(--space-3);
   font-family: var(--font-mono);
-  font-size: var(--text-meta);
+  font-size: var(--text-body);
   line-height: var(--text-meta--line-height);
   font-weight: 400;
   letter-spacing: normal;
@@ -390,10 +396,17 @@ html.profile-open .profile-panel {
    sticks; footer sits at the end of the content, or the bottom of a short
    page. */
 @media (max-width: 63.999rem) {
+  :root {
+    --sticky-top: var(--header-h);
+  }
   html,
   body {
     height: auto;
     overflow: visible;
+  }
+  /* Anchors and the skip link land just below the sticky header. */
+  html {
+    scroll-padding-top: calc(var(--sticky-top) + var(--space-3));
   }
   body {
     min-height: 100dvh;
@@ -483,16 +496,34 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 
 /* Work detail: nav | overview | media */
 
+/* Reflows by the primary column's width (container queries), so it adapts
+   beside the drawer: one column, then list | overview over media, then
+   list | overview | media once the media column is usable (about 330px). */
 .work-detail {
   display: grid;
-  grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
 
-.work-detail__nav {
-  position: sticky;
-  top: 16px;
+@container (min-width: 50rem) {
+  .work-detail {
+    grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  }
+  .work-detail__nav {
+    grid-row: span 2;
+    position: sticky;
+    top: calc(var(--sticky-top) + 16px);
+  }
+}
+
+@container (min-width: 60rem) {
+  .work-detail {
+    grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr) minmax(0, 1.1fr);
+  }
+  .work-detail__nav {
+    grid-row: auto;
+  }
 }
 
 .work-detail__nav-title {
@@ -503,12 +534,6 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   min-height: 16rem;
   border: 1px dashed var(--color-line);
   background: var(--color-surface);
-}
-
-@media (max-width: 60rem) {
-  .work-detail {
-    grid-template-columns: 1fr;
-  }
 }
 
 .admin-bar a { color: var(--color-fg); text-decoration: none; }
@@ -654,7 +679,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   align-items: flex-start;
   gap: var(--space-2);
   position: sticky;
-  top: var(--space-4);
+  top: calc(var(--sticky-top) + var(--space-4));
 }
 
 .rail__line { display: block; }
@@ -680,7 +705,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 
 
 @media (max-width: 46rem) {
-  .leaf { grid-template-columns: 1fr; gap: var(--space-3); }
+  .leaf { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
   .rail {
     position: static;
     flex-direction: row;

@@ -89,6 +89,20 @@ These will break the deploy if violated:
   in prod. Check UI changes against a build running with `ENV=production`.
   Setting styles from JS through `el.style` is fine; only markup is restricted.
 - Site name, role, and tagline are constants at the top of `internal/ui/page.go`.
+- **Layout: one shell breakpoint at 64rem.** From 64rem: the two-column shell
+  (primary column + profile drawer), each column scrolling under a pinned
+  header. Below it: a normal page where the document scrolls under a sticky
+  header. **Anything sticky or anchored must clear the header below 64rem** -
+  offset `top` by `var(--sticky-top)` (it's `--header-h` below 64rem, 0 above),
+  and `html` has a matching `scroll-padding-top`. The drawer is desktop only;
+  `/profile` is the page at every width, and it renders no drawer. Content
+  breakpoints sit at 46rem; work detail reflows with container queries on
+  `.shell__primary`, not viewport queries.
+- **The spacing scale is px-named for now:** `gap-24` is 24px and `gap-6` is
+  6px, not Tailwind's defaults (plan 08 migrates this). Check the generated
+  `tailwind.css` before trusting a spacing utility.
+- House style: short hyphens, never em dashes - in code comments, docs and
+  commit messages.
 - **Tailwind IntelliSense for `.templ`:** workspace `.vscode/settings.json` maps
   `templ` → `html`, points `tailwindCSS.experimental.configFile` at
   `internal/ui/tailwind/input.css`, and turns on string quick-suggestions. Needs

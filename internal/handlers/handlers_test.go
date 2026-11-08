@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"html"
 	"io"
 	"log/slog"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/mattbx/mattbx-go/internal/config"
 	"github.com/mattbx/mattbx-go/internal/db"
+	"github.com/mattbx/mattbx-go/internal/ui"
 )
 
 const (
@@ -462,8 +464,20 @@ func TestProfilePage(t *testing.T) {
 	if !strings.Contains(body, `href="/profile" aria-current="page"`) {
 		t.Error("/profile should mark the Profile nav item current")
 	}
-	if !strings.Contains(body, `<meta name="description" content="Product designer`) {
-		t.Error("/profile should describe itself with the resume summary")
+	// Asserts the source, not the copy, so editing profile.md can't fail it.
+	summary := ui.ProfileSummary()
+	if summary == "" {
+		t.Fatal("ui.ProfileSummary() is empty")
+	}
+	if !strings.Contains(body, `<meta name="description" content="`+html.EscapeString(summary)+`"`) {
+		t.Error("/profile should use the resume summary as its description")
+	}
+	// The page is the resume: no drawer, so every section ID appears once.
+	if n := strings.Count(body, `id="profile-section-0"`); n != 1 {
+		t.Errorf("/profile has %d copies of the first resume section, want 1", n)
+	}
+	if strings.Contains(body, `id="profile-panel"`) {
+		t.Error("/profile should not render the profile drawer")
 	}
 
 	// The page is the profile: ?profile=1 must not open the drawer over it.

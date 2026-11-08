@@ -20,7 +20,6 @@ const (
 	SiteContact  = "mailto:hello@mattbx.co"
 	SiteLinkedIn = "https://www.linkedin.com/in/mattbx/"
 	SiteGitHub   = "https://github.com/mattbx"
-	SiteBio      = "I design and build digital products and things - from interfaces to the systems behind them. Based in Sydney AU. Available for work opportunities."
 )
 
 // ValidThemes are allowed data-theme cookie values.
@@ -36,7 +35,7 @@ var ValidThemes = map[string]bool{
 type Page struct {
 	Title       string // SiteName appended by the shell when set
 	Description string
-	Nav         string // "work" | "other" | "blog" | ""
+	Nav         string // "work" | "other" | "blog" | "profile" | ""
 	// IsAdmin is presentation only (toolbar). Access is middleware-gated.
 	IsAdmin     bool
 	BaseURL     string

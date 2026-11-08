@@ -1,0 +1,12 @@
+package ui
+
+// ProfilePage is the resume as a page. It's the only profile below 64rem and
+// a shareable, no-JS fallback at every width.
+templ ProfilePage(p Page) {
+	@Layout(p) {
+		<article class="profile-page font-mono text-body text-dim">
+			<h1 class={ classPageTitle }>Profile</h1>
+			@ProfileBody()
+		</article>
+	}
+}

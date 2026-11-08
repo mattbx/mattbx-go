@@ -23,9 +23,16 @@ func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, http.StatusOK, ui.Home(p, projects))
 }
 
+func (s *Server) handleProfile(w http.ResponseWriter, r *http.Request) {
+	p := s.page(r, "Profile", ui.ProfileSummary(), "profile")
+	// The page is the profile: never open the drawer over it.
+	p.ProfileOpen = false
+	s.render(w, r, http.StatusOK, ui.ProfilePage(p))
+}
+
+// handleAbout keeps old /about links working.
 func (s *Server) handleAbout(w http.ResponseWriter, r *http.Request) {
-	// Profile lives in the home sidebar (open by default on /).
-	http.Redirect(w, r, "/", http.StatusFound)
+	http.Redirect(w, r, "/profile", http.StatusMovedPermanently)
 }
 
 func (s *Server) handleBlogIndex(w http.ResponseWriter, r *http.Request) {

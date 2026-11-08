@@ -445,6 +445,59 @@ func TestProfileOpenDefaults(t *testing.T) {
 	}
 }
 
+func TestProfilePage(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+
+	w := get(h, "/profile")
+	if w.Code != http.StatusOK {
+		t.Fatalf("GET /profile: status %d, want 200", w.Code)
+	}
+	body := w.Body.String()
+	if !strings.Contains(body, `<h1`) || !strings.Contains(body, ">Profile</h1>") {
+		t.Error("/profile should have a Profile heading")
+	}
+	if !strings.Contains(body, ">Experience</h2>") {
+		t.Error("/profile should render the resume sections from profile.md")
+	}
+	if !strings.Contains(body, `href="/profile" aria-current="page"`) {
+		t.Error("/profile should mark the Profile nav item current")
+	}
+	if !strings.Contains(body, `<meta name="description" content="Product designer`) {
+		t.Error("/profile should describe itself with the resume summary")
+	}
+
+	// The page is the profile: ?profile=1 must not open the drawer over it.
+	if forced := get(h, "/profile?profile=1").Body.String(); strings.Contains(forced, `class="profile-open"`) {
+		t.Error("/profile should never open the profile drawer")
+	}
+}
+
+func TestProfileNavLink(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+
+	// Every page links Profile to /profile, so it works without JS and on
+	// small screens; terminal.js turns it into the drawer toggle on desktop.
+	blog := get(h, "/blog").Body.String()
+	if !strings.Contains(blog, `href="/profile"`) {
+		t.Error("nav should link Profile to /profile")
+	}
+	if strings.Contains(blog, `href="/profile" aria-current`) {
+		t.Error("Profile should only be current on /profile")
+	}
+}
+
+func TestAboutRedirectsToProfile(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+
+	w := get(h, "/about")
+	if w.Code != http.StatusMovedPermanently {
+		t.Fatalf("GET /about: status %d, want 301", w.Code)
+	}
+	if loc := w.Header().Get("Location"); loc != "/profile" {
+		t.Errorf("Location = %q, want /profile", loc)
+	}
+}
+
 // --- Infrastructure -------------------------------------------------------
 
 func TestHealthzChecksTheDatabase(t *testing.T) {

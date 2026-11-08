@@ -294,13 +294,32 @@ function initGrain() {
   window.addEventListener("pagehide", stop);
 }
 
+// The drawer only exists from 64rem (main.css). Below that the nav's
+// Profile link is a plain link to /profile.
+const profileDesktop = window.matchMedia("(min-width: 64rem)");
+
+// The nav link only describes the drawer while it can open one.
+function syncProfileLinks() {
+  const open = document.documentElement.classList.contains("profile-open");
+  document.querySelectorAll("a[data-profile-toggle]").forEach((link) => {
+    if (profileDesktop.matches) {
+      link.setAttribute("aria-controls", "profile-panel");
+      link.setAttribute("aria-expanded", open ? "true" : "false");
+    } else {
+      link.removeAttribute("aria-controls");
+      link.removeAttribute("aria-expanded");
+    }
+  });
+}
+
 function setProfileOpen(open) {
   const root = document.documentElement;
   const panel = document.getElementById("profile-panel");
   root.classList.toggle("profile-open", open);
-  document.querySelectorAll("[data-profile-toggle]").forEach((btn) => {
+  document.querySelectorAll("button[data-profile-toggle]").forEach((btn) => {
     btn.setAttribute("aria-expanded", open ? "true" : "false");
   });
+  syncProfileLinks();
   if (!panel) return;
   panel.setAttribute("aria-hidden", open ? "false" : "true");
   if (open) panel.removeAttribute("inert");
@@ -308,11 +327,19 @@ function setProfileOpen(open) {
 }
 
 function initProfileToggle() {
-  document.querySelectorAll("[data-profile-toggle]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+  document.querySelectorAll("[data-profile-toggle]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      if (el.tagName === "A") {
+        // Small screens, and new-tab clicks, follow the link to /profile.
+        if (!profileDesktop.matches) return;
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+      }
       setProfileOpen(!document.documentElement.classList.contains("profile-open"));
     });
   });
+  syncProfileLinks();
+  profileDesktop.addEventListener("change", syncProfileLinks);
 }
 
 function initThemeSwitcher() {

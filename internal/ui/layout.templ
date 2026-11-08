@@ -42,21 +42,11 @@ templ Layout(p Page) {
 							<a class="wordmark font-mono text-nav uppercase tracking-normal font-bold text-navigation no-underline" href="/">{ SiteMark }</a>
 							<div class="site-header__end">
 								<div class="site-header__clock hidden md:block">@MetaClock()</div>
-								<nav class="nav font-mono uppercase text-nav text-navigation flex gap-6" aria-label="Primary">
+								<nav class="nav font-mono uppercase text-nav text-navigation flex gap-24" aria-label="Primary">
 									<a class="nav-item" data-scramble="link" href="/work" { current(p.Nav == "work")... }>Work</a>
 									<a class="nav-item" data-scramble="link" href="/blog" { current(p.Nav == "other" || p.Nav == "blog")... }>Other</a>
+									@profileNavItem(p)
 								</nav>
-								<button
-									type="button"
-									class="profile-control profile-control--launch nav-item font-mono text-nav uppercase tracking-normal text-navigation bg-transparent border-0 cursor-pointer p-0"
-									data-profile-toggle
-									data-scramble="link"
-									aria-controls="profile-panel"
-									aria-expanded={ profileExpanded(p) }
-								>
-									<span class="profile-control__chevron" aria-hidden="true">@IconArrowLeftMicro()</span>
-									<span data-label data-profile-label>Profile</span>
-								</button>
 							</div>
 						</div>
 					</header>
@@ -109,23 +99,48 @@ templ ProfilePanel(p Page) {
 		</button>
 	</div>
 	<div class="profile-panel__body font-mono text-body text-dim">
-		<div class="profile-panel__intro">
-			<div class="profile-panel__intro-text">
-				@templ.Raw(loadProfile().IntroHTML)
-			</div>
-			<p class="profile-panel__links m-0">
-				<a class="hover-underline" href={ templ.SafeURL(SiteContact) }>Get in touch ↗</a>
-				<a class="hover-underline" href={ templ.SafeURL(SiteLinkedIn) } rel="noopener noreferrer" target="_blank">LinkedIn ↗</a>
-				<a class="hover-underline" href={ templ.SafeURL(SiteGitHub) } rel="noopener noreferrer" target="_blank">GitHub ↗</a>
-			</p>
-		</div>
-		for i, section := range loadProfile().Sections {
-			<section class="profile-panel__section" aria-labelledby={ profileSectionID(i) }>
-				<h2 class="profile-panel__heading" id={ profileSectionID(i) }>{ section.Title }</h2>
-				@templ.Raw(section.HTML)
-			</section>
-		}
+		@ProfileBody()
 	</div>
+}
+
+// ProfileBody is the resume itself: intro, links, then one block per
+// section of content/profile.md. Shared by the drawer and /profile.
+templ ProfileBody() {
+	<div class="profile-panel__intro">
+		<div class="profile-panel__intro-text">
+			@templ.Raw(loadProfile().IntroHTML)
+		</div>
+		<p class="profile-panel__links m-0">
+			<a class="hover-underline" href={ templ.SafeURL(SiteContact) }>Get in touch ↗</a>
+			<a class="hover-underline" href={ templ.SafeURL(SiteLinkedIn) } rel="noopener noreferrer" target="_blank">LinkedIn ↗</a>
+			<a class="hover-underline" href={ templ.SafeURL(SiteGitHub) } rel="noopener noreferrer" target="_blank">GitHub ↗</a>
+		</p>
+	</div>
+	for i, section := range loadProfile().Sections {
+		<section class="profile-panel__section" aria-labelledby={ profileSectionID(i) }>
+			<h2 class="profile-panel__heading" id={ profileSectionID(i) }>{ section.Title }</h2>
+			@templ.Raw(section.HTML)
+		</section>
+	}
+}
+
+// profileNavItem links to /profile. On desktop terminal.js turns the click
+// into a drawer toggle and adds aria-expanded/aria-controls; below 64rem, or
+// without JS, it navigates. On /profile itself it's a plain current link.
+templ profileNavItem(p Page) {
+	if p.Nav == "profile" {
+		<a class="nav-item" data-scramble="link" href="/profile" aria-current="page">Profile</a>
+	} else {
+		<a
+			class="profile-control profile-control--launch nav-item"
+			data-profile-toggle
+			data-scramble="link"
+			href="/profile"
+		>
+			<span class="profile-control__chevron" aria-hidden="true">@IconArrowLeftMicro()</span>
+			<span data-label data-profile-label>Profile</span>
+		</a>
+	}
 }
 
 // Admin write-access bar.

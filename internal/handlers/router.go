@@ -20,6 +20,7 @@ func (s *Server) Routes() http.Handler {
 	// --- Public -----------------------------------------------------------
 	mux.HandleFunc("GET /{$}", s.handleHome)
 	mux.HandleFunc("GET /about", s.handleAbout)
+	mux.HandleFunc("GET /profile", s.handleProfile)
 	mux.HandleFunc("GET /blog", s.handleBlogIndex)
 	mux.HandleFunc("GET /blog/{slug}", s.handleBlogPost)
 	mux.HandleFunc("GET /work", s.handleWorkIndex)

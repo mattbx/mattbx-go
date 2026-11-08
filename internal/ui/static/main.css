@@ -63,8 +63,9 @@ a:hover { opacity: 0.8; }
 
 img { max-width: 100%; height: auto; }
 
-/* Shell — primary column + optional 390px profile. Each column scrolls
-   independently under a pinned header band. */
+/* Shell - from 64rem: primary column + optional 390px profile drawer, each
+   scrolling independently under a pinned header band. Below 64rem: a normal
+   stacked page with no drawer (see the max-width: 63.999rem block). */
 
 /* Registered so the drawer width (and the cqi hero with it) can animate. */
 @property --profile-w {
@@ -85,8 +86,10 @@ img { max-width: 100%; height: auto; }
   transition: --profile-w 400ms var(--ease-wipe);
 }
 
-html.profile-open .shell {
-  --profile-w: min(var(--profile-width), 100%);
+@media (min-width: 64rem) {
+  html.profile-open .shell {
+    --profile-w: min(var(--profile-width), 100%);
+  }
 }
 
 .shell__primary {
@@ -198,9 +201,18 @@ html.profile-open .shell {
   text-decoration: none;
 }
 
-/* Launch lives in the primary header; hide once the panel owns the control. */
-html.profile-open .profile-control--launch {
-  display: none;
+@media (min-width: 64rem) {
+  /* Launch lives in the primary header; hide once the panel owns the control. */
+  html.profile-open .profile-control--launch {
+    display: none;
+  }
+}
+
+/* Below 64rem Profile is a plain link to /profile: no drawer arrow. */
+@media (max-width: 63.999rem) {
+  .profile-control--launch .profile-control__chevron {
+    display: none;
+  }
 }
 
 .shell__scroll {
@@ -352,6 +364,14 @@ html.profile-open .profile-panel {
   margin-top: var(--space-2);
 }
 
+/* /profile: the drawer's resume styles at a readable measure. */
+.profile-page {
+  max-width: var(--measure);
+}
+.profile-page h1 {
+  margin-bottom: var(--space-4);
+}
+
 .site-footer {
   display: flex;
   align-items: center;
@@ -365,22 +385,39 @@ html.profile-open .profile-panel {
   z-index: 2;
 }
 
-/* Below md keep the footer in normal document flow under main.
-   From md up it stays pinned to the bottom of the primary column. */
-@media (max-width: 47.999rem) {
-  .shell__scroll {
-    display: contents;
+/* Below 64rem: no drawer, and the document itself scrolls (so mobile
+   browsers can collapse their toolbars and restore scroll on Back). Header
+   sticks; footer sits at the end of the content, or the bottom of a short
+   page. */
+@media (max-width: 63.999rem) {
+  html,
+  body {
+    height: auto;
+    overflow: visible;
   }
-  .site-footer {
-    flex: 0 0 auto;
+  body {
+    min-height: 100dvh;
+  }
+  .shell {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
   }
   .shell__primary {
-    overflow-x: hidden;
-    overflow-y: auto;
+    flex: 1 0 auto;
+    height: auto;
+    overflow: visible;
   }
-  /* Header scrolls away with content below md (not a second sticky bar). */
+  .shell__scroll {
+    flex: 1 0 auto;
+    overflow: visible;
+  }
   .site-header {
-    position: static;
+    position: sticky;
+    top: 0;
+  }
+  .profile-panel {
+    display: none;
   }
 }
 
@@ -471,24 +508,6 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 @media (max-width: 60rem) {
   .work-detail {
     grid-template-columns: 1fr;
-  }
-  /* Stack the profile under primary on narrow viewports. */
-  html.profile-open .shell {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) minmax(12rem, 45%);
-  }
-  html.profile-open .profile-panel {
-    border-left: 0;
-    border-top: 1px solid var(--color-line);
-  }
-  /* Stacked drawer is full-width; drop the slide-in fixed width. */
-  .profile-panel__chrome,
-  .profile-panel__body {
-    inline-size: auto;
-  }
-  /* The stacked layout snaps rows anyway — don't animate the width var. */
-  .shell {
-    transition: none;
   }
 }
 

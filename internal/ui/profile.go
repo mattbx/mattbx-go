@@ -24,8 +24,14 @@ type ProfileSection struct {
 
 type profileContent struct {
 	IntroHTML string
-	Sections  []ProfileSection
+	// Summary is the intro's longest paragraph as plain text (the bio, not
+	// the title or location lines). Used as the /profile meta description.
+	Summary  string
+	Sections []ProfileSection
 }
+
+// ProfileSummary is the resume's summary paragraph, for page descriptions.
+func ProfileSummary() string { return loadProfile().Summary }
 
 // Force the parse at startup: a broken profile.md crashes the binary before
 // it serves, so Disco's health check fails the new container and the old
@@ -60,6 +66,7 @@ func parseProfile(source string) (profileContent, error) {
 		}
 		if title == "" {
 			content.IntroHTML = html
+			content.Summary = longestParagraph(body)
 		} else {
 			content.Sections = append(content.Sections, ProfileSection{Title: title, HTML: html})
 		}
@@ -87,6 +94,19 @@ func parseProfile(source string) (profileContent, error) {
 		return profileContent{}, fmt.Errorf("no `## ` sections found")
 	}
 	return content, nil
+}
+
+// longestParagraph returns the longest blank-line-separated paragraph,
+// with its line breaks collapsed to spaces.
+func longestParagraph(source string) string {
+	longest := ""
+	for _, para := range strings.Split(source, "\n\n") {
+		para = strings.Join(strings.Fields(para), " ")
+		if len(para) > len(longest) {
+			longest = para
+		}
+	}
+	return longest
 }
 
 func partName(title string) string {

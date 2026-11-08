@@ -5,7 +5,8 @@ Plans in `docs/plans/` build on this. If code and this file disagree, ask before
 
 ## Principles
 
-- **Simple site.** Home, Work detail, Other, plus a Profile drawer. Nothing else public.
+- **Simple site.** Home, Work, Other, plus Profile (a drawer on desktop, a page at `/profile`).
+  Nothing else public.
 - **Figma is direction, not spec.** File: mattbx.co-final. Start from the mocks, improve on them in
   code wherever it helps; judge in the browser.
 - **Reuse built interactions** (row hover fill, scramble, custom cursor) on every list and page -
@@ -18,16 +19,20 @@ Plans in `docs/plans/` build on this. If code and this file disagree, ask before
 - **Home has no nav item.** The `mattbx.co` wordmark links home and never shows an active state.
 - **Work** → `/work`; underlined on `/work/...`. **Other** → its page; underlined on its list and
   posts.
+- **Profile** → `/profile`; underlined on `/profile`. On desktop (64rem+) the same link opens the
+  drawer, and the open drawer never shows an underline (it isn't a section).
+- **Breakpoints:** one shell breakpoint at 64rem. Below it the site is a normal stacked page that
+  scrolls, with a sticky header and inline nav (Work, Other, Profile - no menu button).
 
 ## Pages
 
 | Page | URL | Job |
 |---|---|---|
-| Home | `/` | Hero + the work list. Each row links to its project. No nav item - the wordmark links home |
+| Home | `/` | Hero + the work list. Each row links to its project. No nav item - the wordmark links home. Below 64rem, a short profile intro (title, location, links) sits after the hero with a "Full profile" link to `/profile` (later plan) |
 | Work | `/work` | Opens the top project (row 01) - 302 to its `/work/{slug}`. The "Work" nav item lands here |
 | Work detail | `/work/{slug}` | One project's info and images, with a left-hand list of all projects |
 | Other | `/blog` today (URL undecided) | Writing and open-source work - **not yet defined, needs a rethink** |
-| Profile | drawer, not a page | Resume: intro (title, location, summary) + links (Get in touch, LinkedIn, GitHub), then sections - Experience, Earlier career, Skills, Selected clients. Content in `internal/ui/content/profile.md`. Open by default on `/`, closed elsewhere |
+| Profile | `/profile` (+ drawer from 64rem) | The resume: intro (title, location, summary) + links (Get in touch, LinkedIn, GitHub), then sections - Experience, Earlier career, Skills, Selected clients. Content in `internal/ui/content/profile.md`. A real page at every width. From 64rem (1024px) the nav's Profile link opens it as the side drawer instead; the drawer is open by default on `/` at desktop sizes only. Below 64rem there is no drawer. `/about` 301s here |
 
 ## Work - agreed
 
@@ -63,6 +68,6 @@ Plans in `docs/plans/` build on this. If code and this file disagree, ask before
 - **Other:** what it holds (writing, open source, experiments?), how it's organised, list vs
   detail, and its URL. Posts are one type today, told apart only by tags.
 - **Format** label set.
-- **Leftovers:** `/about` handler, `/portfolio/login` + logout routes, `PortfolioIndex` /
-  `PortfolioProject` templates - keep or remove.
+- **Leftovers:** `/portfolio/login` + logout routes, `PortfolioIndex` / `PortfolioProject`
+  templates - keep or remove. (`/about` resolved: 301 to `/profile`, template removed.)
 - Typography is a separate milestone (one locked type set) - not part of IA.

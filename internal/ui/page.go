@@ -42,6 +42,9 @@ type Page struct {
 	Path        string
 	Theme       string // data-theme on <html>
 	ProfileOpen bool
+	// Scripts are extra first-party static files for this page only, loaded
+	// after the site scripts (e.g. typespec.js on /admin/type).
+	Scripts []string
 }
 
 func (p Page) DocumentTitle() string {

@@ -5,17 +5,17 @@ import "github.com/mattbx/mattbx-go/internal/db"
 templ Home(p Page, projects []*db.Project) {
 	@Layout(p) {
 		<section class="hero">
-			<h1 class="hero__display font-ui text-display text-fg m-0">
+			<h1 class="hero__display type-display text-fg m-0">
 				<span class="hero__line">{ SiteName }</span>
 				<span class="hero__line">{ SiteRole }</span>
 				<span class="hero__line">{ SiteHeroCode }</span>
 			</h1>
 			<p class="hero__contact m-0 mt-6">
-				<a class="font-mono text-meta text-fg underline underline-offset-2" href={ templ.SafeURL(SiteContact) }>Get in touch ↗</a>
+				<a class="type-meta text-fg underline underline-offset-2" href={ templ.SafeURL(SiteContact) }>Get in touch ↗</a>
 			</p>
 		</section>
 		<section class="work-index" aria-labelledby="work-label">
-			<h2 class="work-index__label font-mono text-meta uppercase text-fg m-0" id="work-label">Work</h2>
+			<h2 class="work-index__label type-meta-caps text-fg m-0" id="work-label">Work</h2>
 			if len(projects) == 0 {
 				<p class={ classEmpty }>No projects published yet.</p>
 			} else {
@@ -33,15 +33,15 @@ templ Home(p Page, projects []*db.Project) {
 templ workEntry(project *db.Project, compact bool) {
 	<li class="entry">
 		<a class="entry__link hover-fill-group" href={ templ.SafeURL(workPath(project.Slug)) }>
-			<span class="entry__index font-mono"><span class="hover-fill">{ projectIndex(project.SortOrder) }</span></span>
-			<span class="entry__title font-ui"><span class="hover-fill">{ project.Title }</span></span>
+			<span class="entry__index type-ledger-index"><span class="hover-fill">{ projectIndex(project.SortOrder) }</span></span>
+			<span class="entry__title type-ledger-title"><span class="hover-fill">{ project.Title }</span></span>
 			if !compact {
-				<span class="entry__ref font-mono uppercase text-dim">
+				<span class="entry__ref type-ledger-cell text-dim">
 					if project.Role != "" {
 						<span class="hover-fill">{ project.Role }</span>
 					}
 				</span>
-				<span class="entry__format font-mono uppercase text-dim">
+				<span class="entry__format type-ledger-cell text-dim">
 					<span class="hover-fill">{ projectFormat(project) }</span>
 				</span>
 			}

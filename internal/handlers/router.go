@@ -52,6 +52,7 @@ func (s *Server) Routes() http.Handler {
 
 	// --- Admin (gated) ----------------------------------------------------
 	mux.Handle("GET /admin", requireAdmin(http.HandlerFunc(s.handleAdminDashboard)))
+	mux.Handle("GET /admin/type", requireAdmin(http.HandlerFunc(s.handleTypeSpecimen)))
 
 	mux.Handle("GET /admin/posts/new", requireAdmin(http.HandlerFunc(s.handleNewPostForm)))
 	mux.Handle("POST /admin/posts", requireAdmin(http.HandlerFunc(s.handleCreatePost)))

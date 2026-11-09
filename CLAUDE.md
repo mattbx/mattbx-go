@@ -54,18 +54,21 @@ These will break the deploy if violated:
   at request time.
 - `*_templ.go` is gitignored. Generated fresh by `scripts/local.sh` and the
   Dockerfile.
-- **Colors, type scale, and font stacks live in `internal/ui/tailwind/input.css`.**
+- **Type lives only in `internal/ui/tailwind/typography.css`** (imported by
+  `input.css` after `fonts.css`): families, sizes, line heights, tracking,
+  weights and case. `main.css` holds no type values, only `var()` reads of
+  those tokens. Templates use one `type-*` recipe per element instead of
+  `font-*`/`text-<size>`/`tracking-*` clusters. `/admin/type` shows every role
+  with live computed values - add a row to `typeGroups` in `typespec.templ`
+  when you add a role.
+- **Colors and spacing live in `internal/ui/tailwind/input.css`.**
   Role-based color tokens in `@theme static` (light defaults); dark overrides
   under `@layer theme` inside `@media (prefers-color-scheme: dark)`:
   `--color-page` (bg), `--color-fg` (terminal foreground — graphite light /
   phosphor dark), `--color-dim` (meta/secondary), `--color-line` (hairlines),
   `--color-surface` (sunk panels), `--color-danger` (destructive admin only).
   CRT source values (`--crt-void`, `--crt-phosphor`, …) stay outside `@theme`
-  for the overlay layer.   Fluid type tokens (`--text-hero` … `--text-micro`) and gutters
-  (`--spacing-gutter`, `--spacing-col`) are clamp/vw; tune via `:root`
-  knobs `--fluid-frame` / `--fluid-scale` and per-step `--fluid-*-min|at|max`
-  (preferred size in px at the design frame — no hand calc). Font stacks:
-  `--font-ui` / `--font-prose` / `--font-mono`.
+  for the overlay layer. Gutters: `--spacing-gutter`, `--spacing-col`.
   `main.css` consumes with `var()` and must not redefine these on `:root`.
   Tailwind v4 is hybrid: shell/page chrome are utilities; prose, leaf/rail,
   ledger, forms, and gate stay in `main.css` until further migration. Preflight

@@ -7,13 +7,13 @@ templ WorkDetail(p Page, project *db.Project, projects []*db.Project) {
 	@Layout(p) {
 		<article class="work-detail">
 			<nav class="work-detail__nav" aria-label="Projects">
-				<h2 class="work-detail__nav-title font-ui text-section font-semibold tracking-tight m-0 text-fg">Work</h2>
+				<h2 class="work-detail__nav-title type-page-title m-0 text-fg">Work</h2>
 				<ol class="ledger ledger--compact">
 					for _, item := range projects {
 						<li class={ "entry", entryCurrent(item.ID == project.ID) }>
 							<a class="entry__link hover-fill-group" href={ templ.SafeURL(workPath(item.Slug)) } { current(item.ID == project.ID)... }>
-								<span class="entry__index font-mono"><span class="hover-fill">{ projectIndex(item.SortOrder) }</span></span>
-								<span class="entry__title font-ui"><span class="hover-fill">{ item.Title }</span></span>
+								<span class="entry__index type-ledger-index"><span class="hover-fill">{ projectIndex(item.SortOrder) }</span></span>
+								<span class="entry__title type-ledger-title"><span class="hover-fill">{ item.Title }</span></span>
 							</a>
 						</li>
 					}
@@ -21,10 +21,10 @@ templ WorkDetail(p Page, project *db.Project, projects []*db.Project) {
 			</nav>
 			<div class="work-detail__overview">
 				<header class="work-detail__header">
-					<h1 class="font-ui text-section font-semibold tracking-tight m-0 text-fg">{ project.Title }</h1>
+					<h1 class="type-page-title m-0 text-fg">{ project.Title }</h1>
 					if p.IsAdmin {
 						<p class="mt-2 m-0">
-							<a class="font-mono text-meta" href={ templ.SafeURL(editProjectPath(project.ID)) }>Edit</a>
+							<a class="type-meta" href={ templ.SafeURL(editProjectPath(project.ID)) }>Edit</a>
 						</p>
 					}
 				</header>

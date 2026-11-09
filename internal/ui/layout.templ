@@ -28,6 +28,9 @@ templ Layout(p Page) {
 			<link rel="stylesheet" href={ static.URL("tailwind.css") }/>
 			<script src={ static.URL("terminal.js") } defer></script>
 			<script src={ static.URL("cursor.js") } defer></script>
+			for _, src := range p.Scripts {
+				<script src={ static.URL(src) } defer></script>
+			}
 		</head>
 		<body class={ bodyClass(p) }>
 			<canvas class="grain" aria-hidden="true"></canvas>
@@ -39,10 +42,10 @@ templ Layout(p Page) {
 				<div class="shell__primary">
 					<header class="site-header">
 						<div class="site-header__inner">
-							<a class="wordmark font-mono text-nav uppercase tracking-normal font-bold text-navigation no-underline" data-scramble="link" href="/">{ SiteMark }</a>
+							<a class="wordmark type-wordmark text-navigation no-underline" data-scramble="link" href="/">{ SiteMark }</a>
 							<div class="site-header__clock hidden md:block">@MetaClock()</div>
 							<div class="site-header__end">
-								<nav class="nav font-mono uppercase text-nav text-navigation flex gap-24" aria-label="Primary">
+								<nav class="nav type-nav text-navigation flex gap-24" aria-label="Primary">
 									<a class="nav-item" data-scramble="link" href="/work" { current(p.Nav == "work")... }>Work</a>
 									<a class="nav-item" data-scramble="link" href="/blog" { current(p.Nav == "other" || p.Nav == "blog")... }>Other</a>
 									@profileNavItem(p)
@@ -55,7 +58,7 @@ templ Layout(p Page) {
 							{ children... }
 						</main>
 					</div>
-					<footer class="site-footer font-mono uppercase text-meta">
+					<footer class="site-footer type-meta-caps">
 						<span>© { p.Year() } { SiteName }</span>
 						<span class="site-footer__themes" data-theme-switcher aria-label="Theme">
 							for _, t := range themeOptions() {
@@ -91,7 +94,7 @@ templ ProfilePanel(p Page) {
 	<div class="profile-panel__chrome">
 		<button
 			type="button"
-			class="profile-control profile-control--close nav-item font-mono text-nav uppercase tracking-normal text-navigation bg-transparent border-0 cursor-pointer p-0"
+			class="profile-control profile-control--close nav-item type-nav text-navigation bg-transparent border-0 cursor-pointer p-0"
 			data-profile-toggle
 			data-scramble="link"
 			aria-controls="profile-panel"
@@ -101,7 +104,7 @@ templ ProfilePanel(p Page) {
 			<span class="profile-control__chevron" aria-hidden="true">@IconArrowRightMicro()</span>
 		</button>
 	</div>
-	<div class="profile-panel__body font-mono text-body text-dim">
+	<div class="profile-panel__body type-resume text-dim">
 		@ProfileBody()
 	</div>
 }
@@ -148,13 +151,13 @@ templ profileNavItem(p Page) {
 
 // Admin write-access bar.
 templ adminBar() {
-	<div class="admin-bar font-mono text-meta bg-surface border-b border-line py-2">
+	<div class="admin-bar type-meta bg-surface border-b border-line py-2">
 		<div class="w-full px-gutter flex flex-wrap items-center gap-6">
 			<a href="/admin">Admin</a>
 			<a href="/admin/posts/new">New post</a>
 			<a href="/admin/projects/new">New project</a>
 			<form class="ml-auto" method="post" action="/admin/logout">
-				<button class="font-mono text-meta bg-transparent border-0 text-dim cursor-pointer p-0 underline underline-offset-2 hover:text-danger" type="submit">Sign out</button>
+				<button class="type-meta bg-transparent border-0 text-dim cursor-pointer p-0 underline underline-offset-2 hover:text-danger" type="submit">Sign out</button>
 			</form>
 		</div>
 	</div>

@@ -657,3 +657,58 @@ func TestFeedContentHTMLUnescapesEntities(t *testing.T) {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
+
+// --- Type specimen ----------------------------------------------------------
+
+func TestTypeSpecimenIsAdminOnly(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+
+	w := get(h, "/admin/type")
+	if w.Code != http.StatusSeeOther || !strings.Contains(w.Header().Get("Location"), "login") {
+		t.Fatalf("anonymous GET /admin/type: status %d to %q, want 303 to a login page",
+			w.Code, w.Header().Get("Location"))
+	}
+
+	portfolio := signIn(t, h, "/portfolio/login", portfolioPassword)
+	if w := get(h, "/admin/type", portfolio); w.Code != http.StatusSeeOther {
+		t.Errorf("portfolio session GET /admin/type: status %d, want 303", w.Code)
+	}
+}
+
+func TestTypeSpecimenRendersRolesAndPostSample(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+	admin := signIn(t, h, "/admin/login", adminPassword)
+
+	w := get(h, "/admin/type", admin)
+	if w.Code != http.StatusOK {
+		t.Fatalf("GET /admin/type: status %d, want 200", w.Code)
+	}
+	if got := w.Header().Get("X-Robots-Tag"); !strings.Contains(got, "noindex") {
+		t.Errorf("X-Robots-Tag = %q, want noindex", got)
+	}
+	body := w.Body.String()
+	for _, want := range []string{
+		"/static/typespec.js",         // page-only script
+		`class="type-page-title`,      // a recipe sample
+		"data-type-target",            // rows the script reads values from
+		`<article class="leaf">`,      // the real post markup
+		`<div class="prose">`,         // through the real prose styles
+		"<blockquote>", "<ol>", "<h4", // the full post sample
+		`class="chroma"`, // highlighted at render, like a saved post
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("/admin/type missing %q", want)
+		}
+	}
+}
+
+func TestTypeSpecimenScriptLoadsOnlyThere(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+	admin := signIn(t, h, "/admin/login", adminPassword)
+
+	for _, path := range []string{"/", "/admin", "/profile"} {
+		if strings.Contains(get(h, path, admin).Body.String(), "typespec.js") {
+			t.Errorf("%s loads typespec.js; it belongs to /admin/type only", path)
+		}
+	}
+}

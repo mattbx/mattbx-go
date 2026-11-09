@@ -1,0 +1,239 @@
+package ui
+
+import (
+	"database/sql"
+	"time"
+
+	"github.com/mattbx/mattbx-go/internal/db"
+)
+
+// TypeRole is one row on /admin/type. Use is what to reach for (a recipe
+// class, or the token a main.css component reads). Kind picks the sample
+// markup; Target is the element inside the sample whose computed values
+// typespec.js reads.
+type TypeRole struct {
+	Name   string
+	Use    string
+	Kind   string // recipe | plain | prose | class | rail | field | resume | ledger
+	Tag    string // element or variant within Kind
+	Class  string
+	Target string
+}
+
+type TypeGroup struct {
+	Title string
+	Roles []TypeRole
+}
+
+// typeGroups lists every role in tailwind/typography.css. Add a row here when
+// you add a role; the page warns about recipes it finds in the CSS but not here.
+var typeGroups = []TypeGroup{
+	{"Recipes - templates use these classes", []TypeRole{
+		{Name: "display", Use: "type-display", Kind: "recipe", Class: "type-display", Target: "p"},
+		{Name: "wordmark", Use: "type-wordmark", Kind: "recipe", Class: "type-wordmark", Target: "p"},
+		{Name: "nav", Use: "type-nav", Kind: "recipe", Class: "type-nav", Target: "p"},
+		{Name: "meta field", Use: "type-meta-field", Kind: "recipe", Class: "type-meta-field", Target: "p"},
+		{Name: "meta", Use: "type-meta", Kind: "recipe", Class: "type-meta", Target: "p"},
+		{Name: "meta caps", Use: "type-meta-caps", Kind: "recipe", Class: "type-meta-caps", Target: "p"},
+		{Name: "eyebrow", Use: "type-eyebrow", Kind: "recipe", Class: "type-eyebrow", Target: "p"},
+		{Name: "page title", Use: "type-page-title", Kind: "recipe", Class: "type-page-title", Target: "p"},
+		{Name: "lede", Use: "type-lede", Kind: "recipe", Class: "type-lede", Target: "p"},
+		{Name: "resume", Use: "type-resume", Kind: "recipe", Class: "type-resume", Target: "p"},
+		{Name: "badge", Use: "type-badge", Kind: "recipe", Class: "type-badge", Target: "p"},
+		{Name: "notice", Use: "type-notice", Kind: "recipe", Class: "type-notice", Target: "p"},
+		{Name: "ledger index", Use: "type-ledger-index", Kind: "recipe", Class: "type-ledger-index", Target: "p"},
+		{Name: "ledger title", Use: "type-ledger-title", Kind: "recipe", Class: "type-ledger-title", Target: "p"},
+		{Name: "ledger cell", Use: "type-ledger-cell", Kind: "recipe", Class: "type-ledger-cell", Target: "p"},
+	}},
+	{"Document and prose - main.css reads these tokens", []TypeRole{
+		{Name: "document (body)", Use: "--text-document", Kind: "plain", Target: "p"},
+		{Name: "prose h1", Use: "--text-prose-h1", Kind: "prose", Tag: "h1", Target: "h1"},
+		{Name: "prose h2", Use: "--text-prose-h2", Kind: "prose", Tag: "h2", Target: "h2"},
+		{Name: "prose h3", Use: "--text-prose-h3", Kind: "prose", Tag: "h3", Target: "h3"},
+		{Name: "prose h4", Use: "--text-prose-h4, --case-prose-h4", Kind: "prose", Tag: "h4", Target: "h4"},
+		{Name: "prose paragraph", Use: "--text-document (inherited)", Kind: "prose", Tag: "p", Target: "p"},
+		{Name: "prose inline code", Use: "--text-prose-code", Kind: "prose", Tag: "code", Target: "code"},
+		{Name: "prose code block", Use: "--text-prose-pre", Kind: "prose", Tag: "pre", Target: "pre"},
+		{Name: "prose blockquote", Use: "--text-document (inherited)", Kind: "prose", Tag: "blockquote", Target: "blockquote"},
+		{Name: "prose table head", Use: "--text-prose-th, --case-prose-th", Kind: "prose", Tag: "th", Target: "th"},
+		{Name: "prose table cell", Use: "--text-prose-table", Kind: "prose", Tag: "td", Target: "td"},
+	}},
+	{"Post rail and ledger rows", []TypeRole{
+		{Name: "rail value", Use: "--text-rail (.rail)", Kind: "rail", Tag: "value", Target: ".rail__value"},
+		{Name: "rail key", Use: "--text-rail-key, --case-rail-key", Kind: "rail", Tag: "key", Target: ".rail__key"},
+		{Name: "work row title", Use: "--text-ledger-title (.entry__title)", Kind: "ledger", Tag: "work", Target: ".entry__title"},
+		{Name: "work row cell", Use: "--text-meta, --leading-ledger-row (.entry__link)", Kind: "ledger", Tag: "work", Target: ".entry__ref"},
+		{Name: "blog row", Use: "--text-nav, --case-ledger-blog", Kind: "ledger", Tag: "blog", Target: ".entry__title"},
+	}},
+	{"Header and profile", []TypeRole{
+		{Name: "header clock", Use: "--text-nav, --case-nav (.site-header__clock)", Kind: "class", Class: "site-header__clock", Target: "p"},
+		{Name: "profile control", Use: "--text-nav, --case-nav (.profile-control)", Kind: "class", Class: "profile-control", Target: "p"},
+		{Name: "profile links", Use: "--leading-profile-links (.profile-panel__links)", Kind: "resume", Tag: "links", Target: "a"},
+		{Name: "resume heading", Use: "--font-weight-resume-heading, --case-resume-heading", Kind: "resume", Tag: "heading", Target: "h2"},
+		{Name: "resume emphasis", Use: "--font-weight-resume-emphasis (h3, strong)", Kind: "resume", Tag: "emphasis", Target: "h3"},
+	}},
+	{"Forms, gate and admin lists", []TypeRole{
+		{Name: "field label", Use: "--text-field-label, --case-field-label", Kind: "class", Class: "field__label", Target: "p"},
+		{Name: "field hint", Use: "--text-field-hint", Kind: "class", Class: "field__hint", Target: "p"},
+		{Name: "input", Use: "--text-input", Kind: "field", Tag: "input", Target: "input"},
+		{Name: "textarea", Use: "--text-textarea", Kind: "field", Tag: "textarea", Target: "textarea"},
+		{Name: "checkbox line", Use: "--text-checkline", Kind: "field", Tag: "checkline", Target: "label"},
+		{Name: "button", Use: "--text-button", Kind: "field", Tag: "button", Target: "button"},
+		{Name: "gate mark", Use: "--text-gate-mark, --case-gate-mark", Kind: "class", Class: "gate__mark", Target: "p"},
+		{Name: "gate title", Use: "--text-gate-title", Kind: "class", Class: "gate__title", Target: "p"},
+		{Name: "admin row title", Use: "--font-weight-rowlist-title", Kind: "class", Class: "rowlist__title", Target: "p"},
+		{Name: "admin row meta", Use: "--text-rowlist-meta", Kind: "class", Class: "rowlist__meta", Target: "p"},
+	}},
+}
+
+const (
+	typeSampleShort = "Work & Other Things 0123"
+	typeSampleLong  = "Type is where the hierarchy lives: a title should read first, the summary second, and the body should hold up over a long scroll without tiring the eye."
+)
+
+// TypeSpecimenMarkdown is the in-context post on /admin/type: every element
+// a post body uses, rendered through the real markdown pipeline.
+const TypeSpecimenMarkdown = "This is the lead paragraph. It sets up the post in a sentence or two, and links to [the front page](/) along the way.\n\n" +
+	"## A second-level heading\n\n" +
+	"A paragraph under the heading. It runs long enough to wrap at phone width, so line height and measure both show.\n\n" +
+	"A second paragraph straight after the first, with `inline code` in the middle of it.\n\n" +
+	"A third paragraph in a row, to show the rhythm of plain running text across several blocks.\n\n" +
+	"A paragraph followed by a list:\n\n" +
+	"- First unordered item\n- Second unordered item, a little longer so it wraps at narrow widths\n- Third item\n\n" +
+	"### A third-level heading\n\n" +
+	"1. Ordered one\n2. Ordered two\n3. Ordered three\n\n" +
+	"#### A fourth-level heading\n\n" +
+	"> A blockquote. Short, set off from the text around it.\n\n" +
+	"```go\nfunc main() {\n\tfmt.Println(\"hello, type\")\n}\n```\n\n" +
+	"A closing paragraph after the code block."
+
+func samplePostRow(title string) *db.Post {
+	return &db.Post{
+		Title:       title,
+		Slug:        "type-specimen",
+		Published:   true,
+		PublishedAt: sql.NullTime{Time: time.Date(2026, 11, 8, 0, 0, 0, 0, time.UTC), Valid: true},
+	}
+}
+
+func sampleProjectRow(title string) *db.Project {
+	return &db.Project{Title: title, Slug: "type-specimen", Role: "Ref. A/001", Tech: "Web", SortOrder: 1, Published: true}
+}
+
+// TypeSpecimen is /admin/type: every type role with live computed values
+// (filled in by typespec.js), then a full post in context.
+templ TypeSpecimen(p Page, post *db.Post) {
+	@Layout(p) {
+		<div class={ classPageHead }>
+			<p class={ classEyebrow }>Admin</p>
+			<h1 class={ classPageTitle }>Type specimen</h1>
+			<p class={ classPageLede }>
+				Every role in internal/ui/tailwind/typography.css, with values read live from the browser. Edit the file, rebuild, refresh.
+			</p>
+		</div>
+		<p class="type-meta text-danger" data-type-missing hidden></p>
+		for _, g := range typeGroups {
+			<section class="mt-10">
+				<h2 class="type-eyebrow text-dim m-0 mb-2">{ g.Title }</h2>
+				for _, r := range g.Roles {
+					<div class="border-t border-line py-24" data-type-row data-type-target={ r.Target } data-type-use={ r.Use }>
+						<p class="type-meta text-fg m-0">{ r.Name } <span class="text-dim">{ r.Use }</span></p>
+						<p class="type-meta text-dim m-0 mb-2" data-type-values>-</p>
+						<div data-type-short>
+							@typeSample(r, typeSampleShort)
+						</div>
+						<div class="mt-2">
+							@typeSample(r, typeSampleLong)
+						</div>
+					</div>
+				}
+			</section>
+		}
+		<section class="mt-10">
+			<h2 class="type-eyebrow text-dim m-0 mb-2">Post in context - real post markup and prose styles</h2>
+			<div class="border-t border-line py-24">
+				@postArticle(p, post)
+			</div>
+		</section>
+		<section class="mt-10">
+			<h2 class="type-eyebrow text-dim m-0 mb-2">Tokens - every type custom property, as the browser resolves it</h2>
+			<div class="type-meta border-t border-line py-24" data-type-tokens></div>
+		</section>
+	}
+}
+
+templ typeSample(r TypeRole, text string) {
+	switch r.Kind {
+		case "recipe", "class":
+			<p class={ r.Class, "m-0" }>{ text }</p>
+		case "plain":
+			<p class="m-0">{ text }</p>
+		case "prose":
+			<div class="prose">
+				switch r.Tag {
+					case "h1":
+						<h1>{ text }</h1>
+					case "h2":
+						<h2>{ text }</h2>
+					case "h3":
+						<h3>{ text }</h3>
+					case "h4":
+						<h4>{ text }</h4>
+					case "code":
+						<p>Inline <code>{ text }</code> in a sentence.</p>
+					case "pre":
+						<pre><code>{ text }</code></pre>
+					case "blockquote":
+						<blockquote><p>{ text }</p></blockquote>
+					case "th", "td":
+						<table>
+							<thead><tr><th>{ text }</th></tr></thead>
+							<tbody><tr><td>{ text }</td></tr></tbody>
+						</table>
+					default:
+						<p>{ text }</p>
+				}
+			</div>
+		case "rail":
+			<div class="rail">
+				if r.Tag == "key" {
+					<span class="rail__key">{ text }</span>
+				} else {
+					<span class="rail__line">
+						<span class="rail__key">Published</span>
+						<span class="rail__value">{ text }</span>
+					</span>
+				}
+			</div>
+		case "ledger":
+			<ol class="ledger">
+				if r.Tag == "blog" {
+					@postEntry(samplePostRow(text))
+				} else {
+					@workEntry(sampleProjectRow(text), false)
+				}
+			</ol>
+		case "resume":
+			<div class="type-resume text-dim">
+				switch r.Tag {
+					case "links":
+						<p class="profile-panel__links m-0"><a class="hover-underline" href="#">{ text }</a></p>
+					case "heading":
+						<section class="profile-panel__section"><h2 class="profile-panel__heading">{ text }</h2></section>
+					default:
+						<section class="profile-panel__section"><h3>{ text }</h3></section>
+				}
+			</div>
+		case "field":
+			switch r.Tag {
+				case "input":
+					<input class="input" type="text" value={ text } aria-label={ r.Name }/>
+				case "textarea":
+					<textarea class="textarea textarea--short" aria-label={ r.Name }>{ text }</textarea>
+				case "checkline":
+					<label class="checkline"><input type="checkbox"/>{ text }</label>
+				default:
+					<button class="button" type="button">{ text }</button>
+			}
+	}
+}

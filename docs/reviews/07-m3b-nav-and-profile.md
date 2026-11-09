@@ -110,6 +110,13 @@ device (address bar collapse, Back scroll restore). Both were only reasoned abou
 
 ## 3. Left for the polish plan
 
+> **Status after plan 09 (8 Nov, fbb1b67):** items **1** (sticky offsets + `scroll-padding-top`),
+> **2** (no drawer on `/profile`), **5** (work detail on container queries), **9** (profile summary
+> test) and **10** (CLAUDE.md layout note) are **done**. Still open: **3** (focus + Escape),
+> **4** (focus rescue on resize), **6** (hit areas), **7** (scramble on hover devices only),
+> **8** (small-screen home intro) and **11** (verify the other themes and a real iOS device).
+> Correction: review 06 called `--tap` unused - it's used by three form controls.
+
 Carried over from review 06 and plan 07's "out of scope", plus section 2 above. Ordered roughly
 by user impact.
 

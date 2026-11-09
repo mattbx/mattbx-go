@@ -1,5 +1,11 @@
 # Plan 08 - REVIEW ONLY: token conformity + legacy clean-up
 
+> **On hold (8 Nov) until plan 10 lands.** After plan 10, typography lives in
+> `internal/ui/tailwind/typography.css` and Matt reworks it by hand: check type for conformity
+> only (standard Tailwind namespaces, no literals elsewhere) and **don't propose type roles or
+> values**. Focus the review on spacing (the px-named scale first), colour, motion, breakpoints
+> and legacy.
+
 Branch: `feat/redesign`. **Review and proposal only - no code changes.** It can run while plan 07
 is being built: note the commit you measured against, and if plan 07 changes land during your
 review, re-check the files it touched before you finish.
@@ -22,7 +28,8 @@ Known already:
   `text-project` and `text-title` unused in templates) plus the old CRT-era `--step-*` scale in
   `main.css` (~17 uses, mostly blog prose and older components)
 - **Hardcoded values** in `main.css` (e.g. `12px`, `13px`, `0.6875rem`, theme swatch hex colours)
-- `--tap: 44px` defined and never used
+- `--tap: 44px` **is used** - `min-height` on three form controls in `main.css` (review 06 wrongly
+  called it unused). Keep it; it's the natural token for 44px tap targets
 - Two colour naming layers (`--text-primary` / `--text-secondary` / ... per theme, plus
   `--color-page` / `--color-fg` / `--color-dim` / ... aliases)
 - Uppercase in ~11 places plus `tracking-wide` / `tracking-wider` - check against the

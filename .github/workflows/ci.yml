@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # *_templ.go is gitignored, so generate it before anything compiles.
+      - name: Generate templ
+        run: go tool templ generate
+
+      # Same Tailwind step the Dockerfile runs, so a CSS error fails here
+      # before it fails a deploy. Version is read from the Dockerfile so the
+      # two stay in step.
+      - name: Build Tailwind CSS
+        run: |
+          v=$(sed -n 's/^ARG TAILWIND_VERSION=//p' Dockerfile)
+          curl -fsSLo tailwindcss "https://github.com/tailwindlabs/tailwindcss/releases/download/v${v}/tailwindcss-linux-x64"
+          chmod +x tailwindcss
+          ./tailwindcss -i internal/ui/tailwind/input.css -o internal/ui/static/tailwind.css --minify
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build
+        run: CGO_ENABLED=0 go build ./...
+
+      - name: Test
+        run: go test ./...

@@ -18,8 +18,8 @@ const (
 	SiteTagline  = "Work & Other Things"
 	SiteHeroCode = "#224013"
 	SiteContact  = "mailto:hello@mattbx.co"
-	SiteLinkedIn = "https://www.linkedin.com/in/mattbarron"
-	SiteBio      = "I design and build digital products and things — from interfaces to the systems behind them. Based in Sydney AU. Available for work opportunities."
+	SiteLinkedIn = "https://www.linkedin.com/in/mattbx/"
+	SiteGitHub   = "https://github.com/mattbx"
 )
 
 // ValidThemes are allowed data-theme cookie values.
@@ -35,13 +35,16 @@ var ValidThemes = map[string]bool{
 type Page struct {
 	Title       string // SiteName appended by the shell when set
 	Description string
-	Nav         string // "work" | "other" | "blog" | ""
+	Nav         string // "work" | "other" | "blog" | "profile" | ""
 	// IsAdmin is presentation only (toolbar). Access is middleware-gated.
 	IsAdmin     bool
 	BaseURL     string
 	Path        string
 	Theme       string // data-theme on <html>
 	ProfileOpen bool
+	// Scripts are extra first-party static files for this page only, loaded
+	// after the site scripts (e.g. typespec.js on /admin/type).
+	Scripts []string
 }
 
 func (p Page) DocumentTitle() string {

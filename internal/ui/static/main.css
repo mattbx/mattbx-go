@@ -1,15 +1,10 @@
-/* Layout / components still in CSS. Colors + fonts: tailwind/input.css. */
+/* Layout / components still in CSS. Colors: tailwind/input.css. Type:
+   tailwind/typography.css only - this file holds no type values, it reads
+   type tokens with var(). */
 
 /* Legacy spacing / measure (migrate with pages). */
 
 :root {
-  --step--1: 0.8125rem;
-  --step-0:  1.0625rem;
-  --step-1:  1.125rem;
-  --step-2:  1.25rem;
-  --step-3:  2rem;
-  --step-4:  2.75rem;
-
   --space-none: 0rem;
   --space-eighth: 0.03125rem;
   --space-quarter: 0.0625rem;
@@ -28,6 +23,12 @@
 
   --radius: 3px;
   --tap: 44px;
+
+  /* Header band height (16 + 20 + 16: clock line-height + padding). */
+  --header-h: 3.25rem;
+  /* What the sticky header covers at the top of the scroller: nothing from
+     64rem (the header sits outside .shell__scroll), --header-h below it. */
+  --sticky-top: 0px;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -45,8 +46,8 @@ body {
   background: var(--color-page);
   color: var(--color-fg);
   font-family: var(--font-prose);
-  font-size: var(--step-0);
-  line-height: 1.65;
+  font-size: var(--text-document);
+  line-height: var(--text-document--line-height);
   text-rendering: optimizeLegibility;
   -webkit-text-size-adjust: none;
   -webkit-font-smoothing: antialiased;
@@ -63,8 +64,9 @@ a:hover { opacity: 0.8; }
 
 img { max-width: 100%; height: auto; }
 
-/* Shell — primary column + optional 390px profile. Each column scrolls
-   independently under a pinned header band. */
+/* Shell - from 64rem: primary column + optional 390px profile drawer, each
+   scrolling independently under a pinned header band. Below 64rem: a normal
+   stacked page with no drawer (see the max-width: 63.999rem block). */
 
 /* Registered so the drawer width (and the cqi hero with it) can animate. */
 @property --profile-w {
@@ -85,8 +87,10 @@ img { max-width: 100%; height: auto; }
   transition: --profile-w 400ms var(--ease-wipe);
 }
 
-html.profile-open .shell {
-  --profile-w: min(var(--profile-width), 100%);
+@media (min-width: 64rem) {
+  html.profile-open .shell {
+    --profile-w: min(var(--profile-width), 100%);
+  }
 }
 
 .shell__primary {
@@ -108,7 +112,7 @@ html.profile-open .shell {
   align-items: center;
   box-sizing: border-box;
   flex: 0 0 auto;
-  min-height: 3.25rem; /* 16 + 20 + 16 — clock line-height + padding */
+  min-height: var(--header-h);
   padding-block: 16px;
   border-bottom: 1px solid var(--color-line);
   background: var(--color-page);
@@ -135,11 +139,11 @@ html.profile-open .shell {
   font-family: var(--font-mono);
   font-size: var(--text-nav);
   line-height: var(--text-nav--line-height);
-  text-transform: uppercase;
+  text-transform: var(--case-nav);
   color: var(--color-navigation);
 }
 /* Keep MetaClock children on the header band’s type size. */
-.site-header__clock .text-meta {
+.site-header__clock .type-meta-field {
   font-size: inherit;
   line-height: inherit;
 }
@@ -154,7 +158,7 @@ html.profile-open .shell {
   content: "*";
   color: var(--color-dim);
   margin-left: 0.35em;
-  font-weight: 700;
+  font-weight: var(--font-weight-nav-lock);
 }
 
 /* Current nav: 1px underline (Figma 16:458). */
@@ -192,15 +196,24 @@ html.profile-open .shell {
   font-size: var(--text-nav);
   line-height: var(--text-nav--line-height);
   font-weight: inherit;
-  text-transform: uppercase;
+  text-transform: var(--case-nav);
   letter-spacing: var(--text-nav--letter-spacing);
   padding-block: var(--space-half);
   text-decoration: none;
 }
 
-/* Launch lives in the primary header; hide once the panel owns the control. */
-html.profile-open .profile-control--launch {
-  display: none;
+@media (min-width: 64rem) {
+  /* Launch lives in the primary header; hide once the panel owns the control. */
+  html.profile-open .profile-control--launch {
+    display: none;
+  }
+}
+
+/* Below 64rem Profile is a plain link to /profile: no drawer arrow. */
+@media (max-width: 63.999rem) {
+  .profile-control--launch .profile-control__chevron {
+    display: none;
+  }
 }
 
 .shell__scroll {
@@ -261,26 +274,103 @@ html.profile-open .profile-panel {
   gap: 12px;
 }
 
-.profile-panel__bio {
-  font-size: 12px;
-  line-height: 18px;
-  letter-spacing: -0.03em;
-  color: var(--color-dim);
-  white-space: pre-wrap;
+.profile-panel__intro-text p {
+  margin: 0;
+}
+.profile-panel__intro-text p + p {
+  margin-top: var(--space-2);
+}
+/* Title line a step brighter than body for scanning. */
+.profile-panel__intro-text p:first-child {
+  color: var(--color-fg);
 }
 
 .profile-panel__links {
   display: flex;
   flex-wrap: wrap;
   gap: 12px 24px;
-  font-size: 12px;
-  line-height: 1;
+  font-size: var(--text-body);
+  line-height: var(--leading-profile-links);
 }
 
 .profile-panel__links a {
   color: var(--color-dim);
   text-decoration: underline;
   text-underline-offset: 0.18em;
+}
+
+/* Resume sections: thin rule, small mono heading, body on the drawer's
+   current mono/dim style. Company names (h3) and role lines (strong) a
+   step brighter than body for scanning. */
+.profile-panel__section {
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-line);
+}
+
+.profile-panel__heading {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  line-height: var(--text-meta--line-height);
+  font-weight: var(--font-weight-resume-heading);
+  letter-spacing: var(--tracking-resume-heading);
+  text-transform: var(--case-resume-heading);
+  color: var(--color-dim);
+}
+
+.profile-panel__section h3 {
+  margin: var(--space-4) 0 0;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: var(--font-weight-resume-emphasis);
+  color: var(--color-fg);
+}
+.profile-panel__section h3:first-of-type {
+  margin-top: 0;
+}
+
+.profile-panel__section p {
+  margin: var(--space-2) 0 0;
+}
+.profile-panel__section p:first-child {
+  margin-top: 0;
+}
+
+.profile-panel__section strong {
+  color: var(--color-fg);
+  font-weight: var(--font-weight-resume-emphasis);
+}
+
+/* Small square markers to match the work page bullets; hanging indent. */
+.profile-panel__section ul {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+}
+.profile-panel__section li {
+  position: relative;
+  padding-left: 1.1em;
+}
+.profile-panel__section li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+}
+.profile-panel__section li + li {
+  margin-top: var(--space-2);
+}
+
+/* /profile: the drawer's resume styles at a readable measure. */
+.profile-page {
+  max-width: var(--measure);
+}
+.profile-page h1 {
+  margin-bottom: var(--space-4);
 }
 
 .site-footer {
@@ -296,22 +386,46 @@ html.profile-open .profile-panel {
   z-index: 2;
 }
 
-/* Below md keep the footer in normal document flow under main.
-   From md up it stays pinned to the bottom of the primary column. */
-@media (max-width: 47.999rem) {
-  .shell__scroll {
-    display: contents;
+/* Below 64rem: no drawer, and the document itself scrolls (so mobile
+   browsers can collapse their toolbars and restore scroll on Back). Header
+   sticks; footer sits at the end of the content, or the bottom of a short
+   page. */
+@media (max-width: 63.999rem) {
+  :root {
+    --sticky-top: var(--header-h);
   }
-  .site-footer {
-    flex: 0 0 auto;
+  html,
+  body {
+    height: auto;
+    overflow: visible;
+  }
+  /* Anchors and the skip link land just below the sticky header. */
+  html {
+    scroll-padding-top: calc(var(--sticky-top) + var(--space-3));
+  }
+  body {
+    min-height: 100dvh;
+  }
+  .shell {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
   }
   .shell__primary {
-    overflow-x: hidden;
-    overflow-y: auto;
+    flex: 1 0 auto;
+    height: auto;
+    overflow: visible;
   }
-  /* Header scrolls away with content below md (not a second sticky bar). */
+  .shell__scroll {
+    flex: 1 0 auto;
+    overflow: visible;
+  }
   .site-header {
-    position: static;
+    position: sticky;
+    top: 0;
+  }
+  .profile-panel {
+    display: none;
   }
 }
 
@@ -354,9 +468,6 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 .hero__display {
   display: flex;
   flex-direction: column;
-  font-weight: 630;
-  letter-spacing: -0.03em;
-  line-height: 1;
 }
 
 .hero__line {
@@ -377,20 +488,37 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 
 /* Work detail: nav | overview | media */
 
+/* Reflows by the primary column's width (container queries), so it adapts
+   beside the drawer: one column, then list | overview over media, then
+   list | overview | media once the media column is usable (about 330px). */
 .work-detail {
   display: grid;
-  grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
 
-.work-detail__nav {
-  position: sticky;
-  top: 16px;
+@container (min-width: 50rem) {
+  .work-detail {
+    grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  }
+  .work-detail__nav {
+    grid-row: span 2;
+    position: sticky;
+    top: calc(var(--sticky-top) + 16px);
+  }
 }
 
-.work-detail__back {
-  display: inline-flex;
+@container (min-width: 60rem) {
+  .work-detail {
+    grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr) minmax(0, 1.1fr);
+  }
+  .work-detail__nav {
+    grid-row: auto;
+  }
+}
+
+.work-detail__nav-title {
   margin-bottom: 16px;
 }
 
@@ -398,30 +526,6 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   min-height: 16rem;
   border: 1px dashed var(--color-line);
   background: var(--color-surface);
-}
-
-@media (max-width: 60rem) {
-  .work-detail {
-    grid-template-columns: 1fr;
-  }
-  /* Stack the profile under primary on narrow viewports. */
-  html.profile-open .shell {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) minmax(12rem, 45%);
-  }
-  html.profile-open .profile-panel {
-    border-left: 0;
-    border-top: 1px solid var(--color-line);
-  }
-  /* Stacked drawer is full-width; drop the slide-in fixed width. */
-  .profile-panel__chrome,
-  .profile-panel__body {
-    inline-size: auto;
-  }
-  /* The stacked layout snaps rows anyway — don't animate the width var. */
-  .shell {
-    transition: none;
-  }
 }
 
 .admin-bar a { color: var(--color-fg); text-decoration: none; }
@@ -559,23 +663,23 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 
 .rail {
   font-family: var(--font-mono);
-  font-size: var(--step--1);
-  line-height: 1.5;
+  font-size: var(--text-rail);
+  line-height: var(--text-rail--line-height);
   color: var(--color-fg);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
   position: sticky;
-  top: var(--space-4);
+  top: calc(var(--sticky-top) + var(--space-4));
 }
 
 .rail__line { display: block; }
 .rail__key {
   display: block;
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: var(--text-rail-key);
+  letter-spacing: var(--text-rail-key--letter-spacing);
+  text-transform: var(--case-rail-key);
   color: var(--color-fg);
   opacity: 0.75;
 }
@@ -593,7 +697,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 
 
 @media (max-width: 46rem) {
-  .leaf { grid-template-columns: 1fr; gap: var(--space-3); }
+  .leaf { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
   .rail {
     position: static;
     flex-direction: row;
@@ -601,7 +705,12 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
     align-items: baseline;
     gap: var(--space-1) var(--space-3);
   }
-  .rail__key { display: inline; font-size: inherit; letter-spacing: 0; text-transform: none; }
+  .rail__key {
+    display: inline;
+    font-size: inherit;
+    letter-spacing: var(--tracking-rail-key-inline);
+    text-transform: var(--case-rail-key-inline);
+  }
   .rail__key::after { content: " "; }
   .rail__line { display: inline; }
   .rail__rule { display: none; }
@@ -631,7 +740,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   text-decoration: none;
   color: var(--color-fg);
   font-size: var(--text-meta);
-  line-height: 20px;
+  line-height: var(--leading-ledger-row);
 }
 .ledger--compact .entry__link {
   grid-template-columns: 3.5rem minmax(0, 1fr);
@@ -642,7 +751,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   font-family: var(--font-mono);
   font-size: var(--text-nav);
   line-height: var(--text-nav--line-height);
-  text-transform: uppercase;
+  text-transform: var(--case-ledger-blog);
 }
 .entry__link:hover { opacity: 1; }
 
@@ -655,19 +764,15 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   min-width: 0;
 }
 
+/* Type comes from the type-ledger-title recipe (work rows) or the blog
+   override below - keep it out of this unlayered rule so recipe edits land. */
 .entry__title {
   min-width: 0;
   margin-block: 0;
-  font-family: var(--font-ui);
-  font-size: 13px;
-  line-height: 20px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  text-transform: none;
 }
 .entry__link:has(.entry__meta) .entry__title {
   font: inherit;
-  text-transform: uppercase;
+  text-transform: var(--case-ledger-blog);
 }
 
 .entry__ref,
@@ -687,7 +792,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
-  text-transform: uppercase;
+  text-transform: var(--case-ledger-links);
 }
 
 .entry__links a {
@@ -717,26 +822,40 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 
 .prose h1 {
   font-family: var(--font-prose);
-  font-size: var(--step-3);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  font-size: var(--text-prose-h1);
+  font-weight: var(--text-prose-h1--font-weight);
+  letter-spacing: var(--text-prose-h1--letter-spacing);
+  line-height: var(--text-prose-h1--line-height);
   color: var(--color-fg);
   margin-top: var(--space-6);
 }
 
 .prose h2, .prose h3, .prose h4 {
   font-family: var(--font-ui);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  line-height: 1.25;
   color: var(--color-fg);
   margin-top: var(--space-6);
   margin-bottom: var(--space-3);
 }
-.prose h2 { font-size: var(--step-2); }
-.prose h3 { font-size: var(--step-1); }
-.prose h4 { font-size: var(--step-0); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-dim); }
+.prose h2 {
+  font-size: var(--text-prose-h2);
+  font-weight: var(--text-prose-h2--font-weight);
+  letter-spacing: var(--text-prose-h2--letter-spacing);
+  line-height: var(--text-prose-h2--line-height);
+}
+.prose h3 {
+  font-size: var(--text-prose-h3);
+  font-weight: var(--text-prose-h3--font-weight);
+  letter-spacing: var(--text-prose-h3--letter-spacing);
+  line-height: var(--text-prose-h3--line-height);
+}
+.prose h4 {
+  font-size: var(--text-prose-h4);
+  font-weight: var(--text-prose-h4--font-weight);
+  letter-spacing: var(--text-prose-h4--letter-spacing);
+  line-height: var(--text-prose-h4--line-height);
+  text-transform: var(--case-prose-h4);
+  color: var(--color-dim);
+}
 
 .prose p { margin-block: 0; }
 .prose ul, .prose ol { padding-left: 1.25em; margin-block: 0; }
@@ -758,7 +877,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 
 .prose code {
   font-family: var(--font-mono);
-  font-size: 0.875em;
+  font-size: var(--text-prose-code);
   background: var(--color-surface);
   padding: 0.15em 0.35em;
   border-radius: var(--radius);
@@ -766,8 +885,8 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 
 .prose pre {
   font-family: var(--font-mono);
-  font-size: var(--step--1);
-  line-height: 1.55;
+  font-size: var(--text-prose-pre);
+  line-height: var(--text-prose-pre--line-height);
   padding: var(--space-4);
   border: 1px solid var(--color-line);
   border-radius: var(--radius);
@@ -781,7 +900,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 .prose table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--step--1);
+  font-size: var(--text-prose-table);
   font-family: var(--font-ui);
   display: block;
   overflow-x: auto;
@@ -791,7 +910,13 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--color-line);
 }
-.prose th { font-weight: 600; color: var(--color-dim); text-transform: uppercase; font-size: 0.6875rem; letter-spacing: 0.06em; }
+.prose th {
+  font-weight: var(--text-prose-th--font-weight);
+  color: var(--color-dim);
+  text-transform: var(--case-prose-th);
+  font-size: var(--text-prose-th);
+  letter-spacing: var(--text-prose-th--letter-spacing);
+}
 
 .prose img {
   border-radius: var(--radius);
@@ -806,7 +931,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   left: -1em;
   color: var(--color-fg);
   font-family: var(--font-mono);
-  font-weight: 400;
+  font-weight: var(--font-weight-prose-anchor);
 }
 
 /* Forms */
@@ -816,9 +941,9 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 .field__label {
   display: block;
   font-family: var(--font-mono);
-  font-size: var(--step--1);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--text-field-label);
+  letter-spacing: var(--text-field-label--letter-spacing);
+  text-transform: var(--case-field-label);
   color: var(--color-dim);
   margin-bottom: var(--space-2);
 }
@@ -826,17 +951,17 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 .field__hint {
   display: block;
   font-family: var(--font-ui);
-  font-size: var(--step--1);
+  font-size: var(--text-field-hint);
   color: var(--color-dim);
-  text-transform: none;
-  letter-spacing: 0;
+  text-transform: var(--case-field-hint);
+  letter-spacing: var(--text-field-hint--letter-spacing);
   margin-top: var(--space-1);
 }
 
 .input, .textarea, .select {
   width: 100%;
   font-family: var(--font-ui);
-  font-size: var(--step-0);
+  font-size: var(--text-input);
   color: var(--color-fg);
   background: var(--color-page);
   border: 1px solid var(--color-line);
@@ -852,8 +977,8 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 
 .textarea {
   font-family: var(--font-mono);
-  font-size: var(--step--1);
-  line-height: 1.6;
+  font-size: var(--text-textarea);
+  line-height: var(--text-textarea--line-height);
   resize: vertical;
   min-height: 22rem;
 }
@@ -864,7 +989,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   align-items: center;
   gap: var(--space-2);
   font-family: var(--font-ui);
-  font-size: var(--step-0);
+  font-size: var(--text-checkline);
   min-height: var(--tap);
 }
 .checkline input { width: 1.1em; height: 1.1em; accent-color: var(--color-fg); }
@@ -883,9 +1008,9 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   justify-content: center;
   gap: var(--space-2);
   font-family: var(--font-ui);
-  font-size: var(--step-0);
-  font-weight: 550;
-  line-height: 1;
+  font-size: var(--text-button);
+  font-weight: var(--text-button--font-weight);
+  line-height: var(--text-button--line-height);
   padding: var(--space-3) var(--space-4);
   min-height: var(--tap);
   border-radius: var(--radius);
@@ -932,18 +1057,18 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 
 .gate__mark {
   font-family: var(--font-mono);
-  font-size: var(--step--1);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: var(--text-gate-mark);
+  letter-spacing: var(--text-gate-mark--letter-spacing);
+  text-transform: var(--case-gate-mark);
   color: var(--color-dim);
   margin: 0 0 var(--space-3);
 }
 
 .gate__title {
   font-family: var(--font-ui);
-  font-size: var(--step-2);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-size: var(--text-gate-title);
+  font-weight: var(--text-gate-title--font-weight);
+  letter-spacing: var(--text-gate-title--letter-spacing);
   margin: 0 0 var(--space-3);
 }
 
@@ -965,7 +1090,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 .rowlist li:last-child { border-bottom: 1px solid var(--color-line); }
 .rowlist__title {
   font-family: var(--font-ui);
-  font-weight: 550;
+  font-weight: var(--font-weight-rowlist-title);
   color: var(--color-fg);
   text-decoration: none;
   flex: 1 1 14rem;
@@ -973,7 +1098,7 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
 .rowlist__title:hover { color: var(--color-fg); }
 .rowlist__meta {
   font-family: var(--font-mono);
-  font-size: var(--step--1);
+  font-size: var(--text-rowlist-meta);
   color: var(--color-dim);
 }
 .rowlist form { display: inline; }

@@ -46,8 +46,9 @@ func (s *Server) page(r *http.Request, title, description, nav string) ui.Page {
 	if c, err := r.Cookie("theme"); err == nil && ui.ValidThemes[c.Value] {
 		theme = c.Value
 	}
-	// Home opens the profile column by default; work/other stay closed.
-	// ?profile=1|0 overrides for deep links (e.g. /about → /?profile=1).
+	// Home opens the profile drawer by default; work/other stay closed.
+	// ?profile=1|0 overrides it. CSS only shows the drawer from 64rem, so
+	// this is a desktop default; smaller screens use /profile.
 	profileOpen := r.URL.Path == "/"
 	switch r.URL.Query().Get("profile") {
 	case "1":

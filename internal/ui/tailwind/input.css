@@ -8,10 +8,12 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities) source(none);
 @import "./fonts.css";
+@import "./typography.css";
 
 @source "../*.templ";
 @source "../classes.go";
 @source "../static/terminal.js";
+@source "../static/typespec.js";
 
 /* Theme roles live on :root; data-theme overrides swap values.
    Legacy --color-page/fg/dim/line/surface alias the Figma roles so
@@ -36,7 +38,7 @@
   --grain-tiles: 6;
 
   /* Cursor crosshairs + trail (corners removed; this token is cursor-only now). */
-  --cross-color: color-mix(in srgb, var(--text-primary) 20%, transparent);
+  --cross-color: color-mix(in srgb, var(--text-primary) 12%, transparent);
   --cross-arm: 0px;
   --cross-arm-rest: 0px;
   --cross-inset: 0px;
@@ -101,52 +103,10 @@ html[data-theme="blueish-2"] {
 }
 
 /* Tokens: @theme static so main.css can var() them even unused.
-   --font-mono: PP Fraktion Mono first (local/personal — not committed);
-   Inter Variable is OFL via fetch-fonts.sh. */
+   Type (families, sizes, weights, tracking, case) lives in typography.css. */
 @theme static {
-  --font-mono: "PP Fraktion Mono", "JetBrains Mono", "Victor Mono", ui-monospace, "SF Mono",
-    SFMono-Regular, "Cascadia Mono", Menlo, Consolas, monospace;
-  --font-ui: "Inter Variable", "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-prose: "Inter Variable", "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-
   /* ~1512 desktop reference; content uses full width with 16px gutter. */
   --container-site: 94.5rem;
-
-  /* Desktop-first type from Figma; light clamp floors for smaller viewports.
-     Display scales with the primary column (container query units): 101.5px
-     hero at the Figma 1090px content width → 9.31cqi. Above that width the
-     shallower 2.114rem + 6.21cqi line takes over (they meet at 1090px), so
-     growth past the Figma frame is cut by a third. */
-  --text-display: max(2rem, min(9.31cqi, calc(2.114rem + 6.21cqi)));
-  --text-display--line-height: 1;
-  --text-display--letter-spacing: -0.03em;
-
-  --text-section: 1.0625rem;
-  --text-section--line-height: 1;
-  --text-section--letter-spacing: -0.03em;
-
-  --text-project: 0.8125rem;
-  --text-project--line-height: 1.25rem;
-  --text-project--letter-spacing: -0.02em;
-
-  --text-nav: 0.75rem;
-  --text-nav--line-height: 1;
-  --text-nav--letter-spacing: 0;
-
-  --text-title: 0.8125rem;
-  --text-title--line-height: 1.25rem;
-
-  --text-meta: 0.75rem;
-  --text-meta--line-height: 1.25rem;
-
-  --text-micro: 0.75rem;
-  --text-micro--line-height: 1.125rem;
-
-  --text-body: 0.75rem;
-  --text-body--line-height: 1.125rem;
-  --text-body--letter-spacing: -0.03em;
 
   --spacing-gutter: 1rem;
   --spacing-2: 0.125rem;

@@ -45,49 +45,55 @@ templ postEntry(post *db.Post) {
 
 templ BlogPost(p Page, post *db.Post) {
 	@Layout(p) {
-		<article class="leaf">
-			<aside class="rail">
-				<span class="rail__line">
-					<span class="rail__key">Published</span>
-					<time class="rail__value" datetime={ machineDate(post.Date()) }>
-						{ railDate(post.Date()) }
-					</time>
-				</span>
-				<span class="rail__line">
-					<span class="rail__key">Read</span>
-					<span class="rail__value">{ readingTime(post.BodyMD) }</span>
-				</span>
-				if len(post.TagList()) > 0 {
-					<div class="rail__rule"></div>
-					<span class="rail__key">Tags</span>
-					<span class="rail__tags">
-						for _, tag := range post.TagList() {
-							<span class="rail__tag">{ tag }</span>
-						}
-					</span>
-				}
-				if !post.Published {
-					<div class="rail__rule"></div>
-					<span class={ classBadge, "text-dim" }>draft</span>
-				}
-				if p.IsAdmin {
-					<div class="rail__rule"></div>
-					<a href={ templ.SafeURL(editPostPath(post.ID)) }>Edit</a>
-				}
-			</aside>
-			<div>
-				<header class={ classPageHead }>
-					if post.Title != "" {
-						<h1 class={ classPageTitle }>{ post.Title }</h1>
-					}
-					if post.Summary != "" {
-						<p class={ classPageLede }>{ post.Summary }</p>
-					}
-				</header>
-				<div class="prose">
-					@templ.Raw(post.BodyHTML)
-				</div>
-			</div>
-		</article>
+		@postArticle(p, post)
 	}
+}
+
+// postArticle is a post's rail, header and body. Shared by the post page and
+// the type specimen, so the specimen shows the real markup.
+templ postArticle(p Page, post *db.Post) {
+	<article class="leaf">
+		<aside class="rail">
+			<span class="rail__line">
+				<span class="rail__key">Published</span>
+				<time class="rail__value" datetime={ machineDate(post.Date()) }>
+					{ railDate(post.Date()) }
+				</time>
+			</span>
+			<span class="rail__line">
+				<span class="rail__key">Read</span>
+				<span class="rail__value">{ readingTime(post.BodyMD) }</span>
+			</span>
+			if len(post.TagList()) > 0 {
+				<div class="rail__rule"></div>
+				<span class="rail__key">Tags</span>
+				<span class="rail__tags">
+					for _, tag := range post.TagList() {
+						<span class="rail__tag">{ tag }</span>
+					}
+				</span>
+			}
+			if !post.Published {
+				<div class="rail__rule"></div>
+				<span class={ classBadge, "text-dim" }>draft</span>
+			}
+			if p.IsAdmin {
+				<div class="rail__rule"></div>
+				<a href={ templ.SafeURL(editPostPath(post.ID)) }>Edit</a>
+			}
+		</aside>
+		<div>
+			<header class={ classPageHead }>
+				if post.Title != "" {
+					<h1 class={ classPageTitle }>{ post.Title }</h1>
+				}
+				if post.Summary != "" {
+					<p class={ classPageLede }>{ post.Summary }</p>
+				}
+			</header>
+			<div class="prose">
+				@templ.Raw(post.BodyHTML)
+			</div>
+		</div>
+	</article>
 }

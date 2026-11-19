@@ -1,0 +1,346 @@
+/* Typography - the only place type is defined.
+
+   Font families, sizes, line heights, letter spacing, weights and case all
+   live here. main.css holds no type values: it reads these tokens with
+   var(). Templates name a role (`type-nav`), not a recipe of utilities.
+
+   Tokens use Tailwind v4 namespaces so they stay standard utilities too:
+   --font-* (family), --text-* (size, with --line-height / --letter-spacing /
+   --font-weight companions), --font-weight-*, --tracking-*, --leading-*.
+   Text-transform has no Tailwind namespace, so case tokens (--case-*) sit
+   in :root below.
+
+   Add a role: define its tokens in @theme (size + companions, or the
+   single-property namespaces), add its --case-* if it sets case, then
+   either read the tokens from a main.css component or add a `type-<role>`
+   @utility at the bottom and use that class in the template. A recipe sets
+   only what the role sets; anything it leaves out is inherited.
+
+   Values were gathered as-is from input.css, main.css and template utility
+   clusters - nothing is merged yet. "same as" comments mark duplicates;
+   "unused" marks tokens nothing reads, so editing them changes nothing.
+   /admin/type shows the values the browser actually uses. */
+
+@theme static {
+  /* Families. PP Fraktion Mono first (local/personal - not committed);
+     Inter Variable is OFL via fetch-fonts.sh. */
+  --font-mono: "PP Fraktion Mono", "JetBrains Mono", "Victor Mono", ui-monospace, "SF Mono",
+    SFMono-Regular, "Cascadia Mono", Menlo, Consolas, monospace;
+  --font-ui: "Inter Variable", "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-prose: "Inter Variable", "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* ---- Site scale (Figma) ---------------------------------------------- */
+
+  /* Display scales with the primary column (container query units): 101.5px
+     hero at the Figma 1090px content width -> 9.31cqi. Above that width the
+     shallower 2.114rem + 6.21cqi line takes over (they meet at 1090px), so
+     growth past the Figma frame is cut by a third. */
+  --text-display: max(2rem, min(9.31cqi, calc(2.114rem + 6.21cqi)));
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 630;
+
+  --text-section: 1.0625rem; /* same as --text-document */
+  --text-section--line-height: 1;
+  --text-section--letter-spacing: -0.03em; /* unused: titles use --tracking-page-title */
+
+  /* --text-project and its companions: unused. */
+  --text-project: 0.8125rem;
+  --text-project--line-height: 1.25rem;
+  --text-project--letter-spacing: -0.02em;
+
+  --text-nav: 0.75rem;
+  --text-nav--line-height: 1;
+  --text-nav--letter-spacing: 0;
+
+  /* --text-title and its companion: unused. */
+  --text-title: 0.8125rem; /* same as --text-project */
+  --text-title--line-height: 1.25rem;
+
+  --text-meta: 0.75rem; /* same as --text-nav */
+  --text-meta--line-height: 1.25rem;
+
+  --text-micro: 0.75rem; /* same as --text-nav */
+  --text-micro--line-height: 1.125rem; /* unused: badges use --leading-badge */
+
+  --text-body: 0.75rem; /* same as --text-nav */
+  --text-body--line-height: 1.125rem; /* same as --text-micro--line-height */
+  --text-body--letter-spacing: -0.03em;
+
+  /* ---- Recipe-only values (from template utility clusters) -------------- */
+
+  --font-weight-wordmark: 700;
+  --tracking-wordmark: 0em; /* same as --text-nav--letter-spacing */
+
+  --tracking-meta-field: 0.025em;
+
+  --tracking-eyebrow: 0em; /* same as --tracking-wordmark */
+
+  /* Page titles use --text-section's size and line height with these. */
+  --tracking-page-title: -0.025em;
+  --font-weight-page-title: 600;
+
+  --tracking-badge: 0.05em;
+  --leading-badge: 1.5;
+
+  /* ---- Document --------------------------------------------------------- */
+
+  /* body: default size and line height for everything below. */
+  --text-document: 1.0625rem;
+  --text-document--line-height: 1.65;
+
+  /* ---- Header and nav --------------------------------------------------- */
+
+  --font-weight-nav-lock: 700; /* the "*" after a locked nav item */
+
+  /* ---- Profile / resume ------------------------------------------------- */
+
+  --leading-profile-links: 1;
+
+  /* Section headings: size --text-body, line height --text-meta--line-height. */
+  --font-weight-resume-heading: 400;
+  --tracking-resume-heading: normal;
+
+  /* Company names (h3) and role lines (strong). */
+  --font-weight-resume-emphasis: 700; /* same as --font-weight-wordmark */
+
+  /* ---- Ledger rows ------------------------------------------------------ */
+
+  /* Work rows: size --text-meta. Blog rows switch to --text-nav. */
+  --leading-ledger-row: 20px; /* same as --text-meta--line-height */
+
+  --text-ledger-title: 13px; /* same as --text-project */
+  --text-ledger-title--line-height: 20px; /* same as --leading-ledger-row */
+  --text-ledger-title--letter-spacing: -0.01em;
+  --text-ledger-title--font-weight: 500;
+
+  /* ---- Post rail -------------------------------------------------------- */
+
+  --text-rail: 0.8125rem; /* same as --text-project */
+  --text-rail--line-height: 1.5;
+
+  --text-rail-key: 0.6875rem;
+  --text-rail-key--letter-spacing: 0.08em;
+  /* Below 46rem the keys run inline with their values. */
+  --tracking-rail-key-inline: 0;
+
+  /* ---- Prose ------------------------------------------------------------ */
+
+  --text-prose-h1: 2rem;
+  --text-prose-h1--line-height: 1.15;
+  --text-prose-h1--letter-spacing: -0.02em;
+  --text-prose-h1--font-weight: 600;
+
+  --text-prose-h2: 1.25rem;
+  --text-prose-h2--line-height: 1.25;
+  --text-prose-h2--letter-spacing: -0.015em;
+  --text-prose-h2--font-weight: 600;
+
+  --text-prose-h3: 1.125rem;
+  --text-prose-h3--line-height: 1.25; /* same as h2 */
+  --text-prose-h3--letter-spacing: -0.015em; /* same as h2 */
+  --text-prose-h3--font-weight: 600; /* same as h2 */
+
+  --text-prose-h4: 1.0625rem; /* same as --text-document */
+  --text-prose-h4--line-height: 1.25; /* same as h2 */
+  --text-prose-h4--letter-spacing: 0.06em;
+  --text-prose-h4--font-weight: 600; /* same as h2 */
+
+  --text-prose-code: 0.875em; /* inline code, relative to its paragraph */
+
+  --text-prose-pre: 0.8125rem; /* same as --text-rail */
+  --text-prose-pre--line-height: 1.55;
+
+  --text-prose-table: 0.8125rem; /* same as --text-rail */
+
+  --text-prose-th: 0.6875rem; /* same as --text-rail-key */
+  --text-prose-th--letter-spacing: 0.06em; /* same as --text-prose-h4--letter-spacing */
+  --text-prose-th--font-weight: 600;
+
+  --font-weight-prose-anchor: 400; /* the "#" on heading hover */
+
+  /* ---- Forms ------------------------------------------------------------ */
+
+  --text-field-label: 0.8125rem; /* same as --text-rail */
+  --text-field-label--letter-spacing: 0.06em; /* same as --text-prose-h4--letter-spacing */
+
+  --text-field-hint: 0.8125rem; /* same as --text-rail */
+  --text-field-hint--letter-spacing: 0;
+
+  --text-input: 1.0625rem; /* same as --text-document */
+
+  --text-textarea: 0.8125rem; /* same as --text-rail */
+  --text-textarea--line-height: 1.6;
+
+  --text-checkline: 1.0625rem; /* same as --text-document */
+
+  --text-button: 1.0625rem; /* same as --text-document */
+  --text-button--line-height: 1;
+  --text-button--font-weight: 550;
+
+  /* ---- Gate (password, delete confirm, error pages) --------------------- */
+
+  --text-gate-mark: 0.8125rem; /* same as --text-rail */
+  --text-gate-mark--letter-spacing: 0.1em;
+
+  --text-gate-title: 1.25rem; /* same as --text-prose-h2 */
+  --text-gate-title--letter-spacing: -0.02em; /* same as --text-prose-h1--letter-spacing */
+  --text-gate-title--font-weight: 600;
+
+  /* ---- Admin lists ------------------------------------------------------ */
+
+  --font-weight-rowlist-title: 550; /* same as --text-button--font-weight */
+  --text-rowlist-meta: 0.8125rem; /* same as --text-rail */
+}
+
+/* Case. Not a Tailwind namespace, so plain custom properties. */
+:root {
+  --case-nav: uppercase; /* nav, header clock, profile control */
+  --case-wordmark: uppercase;
+  --case-meta-field: uppercase;
+  --case-meta-caps: uppercase; /* footer, home "Work" label */
+  --case-eyebrow: uppercase;
+  --case-badge: uppercase;
+  --case-resume-heading: uppercase;
+  --case-ledger-cell: uppercase; /* work row reference + format */
+  --case-ledger-title: none;
+  --case-ledger-blog: uppercase; /* whole blog row, title included */
+  --case-ledger-links: uppercase; /* .entry__links - no template uses it */
+  --case-rail-key: uppercase;
+  --case-rail-key-inline: none;
+  --case-prose-h4: uppercase;
+  --case-prose-th: uppercase;
+  --case-field-label: uppercase;
+  --case-field-hint: none;
+  --case-gate-mark: uppercase;
+}
+
+/* ---- Role recipes ------------------------------------------------------- */
+/* One class per role used in templates. Colour, margin and layout stay as
+   separate utilities on the element. */
+
+/* Home hero. */
+@utility type-display {
+  font-family: var(--font-ui);
+  font-size: var(--text-display);
+  line-height: var(--text-display--line-height);
+  letter-spacing: var(--text-display--letter-spacing);
+  font-weight: var(--text-display--font-weight);
+}
+
+@utility type-wordmark {
+  font-family: var(--font-mono);
+  font-size: var(--text-nav);
+  line-height: var(--text-nav--line-height);
+  letter-spacing: var(--tracking-wordmark);
+  font-weight: var(--font-weight-wordmark);
+  text-transform: var(--case-wordmark);
+}
+
+/* Primary nav and the drawer's close control. */
+@utility type-nav {
+  font-family: var(--font-mono);
+  font-size: var(--text-nav);
+  line-height: var(--text-nav--line-height);
+  letter-spacing: var(--text-nav--letter-spacing);
+  text-transform: var(--case-nav);
+}
+
+/* Colophon readouts (header clock). */
+@utility type-meta-field {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  letter-spacing: var(--tracking-meta-field);
+  text-transform: var(--case-meta-field);
+}
+
+/* Small mono links and notes: admin bar, edit links, empty states. */
+@utility type-meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+/* Footer and the home "Work" label. */
+@utility type-meta-caps {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  text-transform: var(--case-meta-caps);
+}
+
+/* Small label above a page title. */
+@utility type-eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: var(--case-eyebrow);
+}
+
+/* Page, post and project titles; admin section heads. */
+@utility type-page-title {
+  font-family: var(--font-ui);
+  font-size: var(--text-section);
+  line-height: var(--text-section--line-height);
+  letter-spacing: var(--tracking-page-title);
+  font-weight: var(--font-weight-page-title);
+}
+
+/* Summary line under a page title. */
+@utility type-lede {
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  letter-spacing: var(--text-body--letter-spacing);
+}
+
+/* Resume body (drawer and /profile). Same values as type-lede. */
+@utility type-resume {
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  letter-spacing: var(--text-body--letter-spacing);
+}
+
+/* Draft / published badges. */
+@utility type-badge {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  line-height: var(--leading-badge);
+  letter-spacing: var(--tracking-badge);
+  text-transform: var(--case-badge);
+}
+
+/* Form error notices. */
+@utility type-notice {
+  font-family: var(--font-ui);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+/* Work ledger cells: index number, title, reference / format. */
+@utility type-ledger-index {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: var(--leading-ledger-row);
+}
+
+@utility type-ledger-title {
+  font-family: var(--font-ui);
+  font-size: var(--text-ledger-title);
+  line-height: var(--text-ledger-title--line-height);
+  letter-spacing: var(--text-ledger-title--letter-spacing);
+  font-weight: var(--text-ledger-title--font-weight);
+  text-transform: var(--case-ledger-title);
+}
+
+@utility type-ledger-cell {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: var(--leading-ledger-row);
+  text-transform: var(--case-ledger-cell);
+}

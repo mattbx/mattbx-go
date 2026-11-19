@@ -30,3 +30,6 @@ disco-llms-reference.txt
 
 # macOS
 .DS_Store
+
+# Local review screenshots
+docs/reviews/*-screens/

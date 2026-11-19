@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"html"
 	"io"
 	"log/slog"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/mattbx/mattbx-go/internal/config"
 	"github.com/mattbx/mattbx-go/internal/db"
+	"github.com/mattbx/mattbx-go/internal/ui"
 )
 
 const (
@@ -342,6 +344,75 @@ func TestWorkIsPublic(t *testing.T) {
 	}
 }
 
+func TestWorkIndexRedirectsToTopProject(t *testing.T) {
+	_, h, _, projects := newTestServer(t)
+
+	// Out-of-order inserts: /work must pick the lowest sort_order, not
+	// insertion order.
+	for _, p := range []*db.Project{
+		{Slug: "second", Title: "Second", SortOrder: 2, Published: true},
+		{Slug: "first", Title: "First", SortOrder: 1, Published: true},
+	} {
+		if err := projects.Create(context.Background(), p); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	w := get(h, "/work")
+	if w.Code != http.StatusFound {
+		t.Fatalf("GET /work: status %d, want 302", w.Code)
+	}
+	if loc := w.Header().Get("Location"); loc != "/work/first" {
+		t.Errorf("Location = %q, want /work/first", loc)
+	}
+
+	w = get(h, "/work/")
+	if w.Code != http.StatusFound {
+		t.Fatalf("GET /work/: status %d, want 302", w.Code)
+	}
+	if loc := w.Header().Get("Location"); loc != "/work/first" {
+		t.Errorf("Location = %q, want /work/first", loc)
+	}
+}
+
+func TestWorkIndexWithNoProjectsRedirectsHome(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+
+	w := get(h, "/work")
+	if w.Code != http.StatusFound {
+		t.Fatalf("GET /work: status %d, want 302", w.Code)
+	}
+	if loc := w.Header().Get("Location"); loc != "/" {
+		t.Errorf("Location = %q, want /", loc)
+	}
+}
+
+func TestNavActiveStates(t *testing.T) {
+	_, h, _, projects := newTestServer(t)
+	if err := projects.Create(context.Background(), &db.Project{
+		Slug: "ledger", Title: "Ledger", SortOrder: 1, Published: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Home is not a section: no nav item is current there.
+	home := get(h, "/").Body.String()
+	if strings.Contains(home, `aria-current`) {
+		t.Error("home should mark no nav item current")
+	}
+
+	// Work detail marks the Work nav item (and the current list entry).
+	detail := get(h, "/work/ledger").Body.String()
+	if !strings.Contains(detail, `href="/work" aria-current="page"`) {
+		t.Error("work detail should mark the Work nav item current")
+	}
+
+	// The nav links to /work, not /.
+	if !strings.Contains(home, `href="/work"`) {
+		t.Error("nav Work item should link to /work")
+	}
+}
+
 func TestProfileOpenDefaults(t *testing.T) {
 	_, h, _, projects := newTestServer(t)
 	if err := projects.Create(context.Background(), &db.Project{
@@ -373,6 +444,71 @@ func TestProfileOpenDefaults(t *testing.T) {
 	forced := get(h, "/blog?profile=1").Body.String()
 	if !strings.Contains(forced, `class="profile-open"`) {
 		t.Error("?profile=1 should open the profile column on other pages")
+	}
+}
+
+func TestProfilePage(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+
+	w := get(h, "/profile")
+	if w.Code != http.StatusOK {
+		t.Fatalf("GET /profile: status %d, want 200", w.Code)
+	}
+	body := w.Body.String()
+	if !strings.Contains(body, `<h1`) || !strings.Contains(body, ">Profile</h1>") {
+		t.Error("/profile should have a Profile heading")
+	}
+	if !strings.Contains(body, ">Experience</h2>") {
+		t.Error("/profile should render the resume sections from profile.md")
+	}
+	if !strings.Contains(body, `href="/profile" aria-current="page"`) {
+		t.Error("/profile should mark the Profile nav item current")
+	}
+	// Asserts the source, not the copy, so editing profile.md can't fail it.
+	summary := ui.ProfileSummary()
+	if summary == "" {
+		t.Fatal("ui.ProfileSummary() is empty")
+	}
+	if !strings.Contains(body, `<meta name="description" content="`+html.EscapeString(summary)+`"`) {
+		t.Error("/profile should use the resume summary as its description")
+	}
+	// The page is the resume: no drawer, so every section ID appears once.
+	if n := strings.Count(body, `id="profile-section-0"`); n != 1 {
+		t.Errorf("/profile has %d copies of the first resume section, want 1", n)
+	}
+	if strings.Contains(body, `id="profile-panel"`) {
+		t.Error("/profile should not render the profile drawer")
+	}
+
+	// The page is the profile: ?profile=1 must not open the drawer over it.
+	if forced := get(h, "/profile?profile=1").Body.String(); strings.Contains(forced, `class="profile-open"`) {
+		t.Error("/profile should never open the profile drawer")
+	}
+}
+
+func TestProfileNavLink(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+
+	// Every page links Profile to /profile, so it works without JS and on
+	// small screens; terminal.js turns it into the drawer toggle on desktop.
+	blog := get(h, "/blog").Body.String()
+	if !strings.Contains(blog, `href="/profile"`) {
+		t.Error("nav should link Profile to /profile")
+	}
+	if strings.Contains(blog, `href="/profile" aria-current`) {
+		t.Error("Profile should only be current on /profile")
+	}
+}
+
+func TestAboutRedirectsToProfile(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+
+	w := get(h, "/about")
+	if w.Code != http.StatusMovedPermanently {
+		t.Fatalf("GET /about: status %d, want 301", w.Code)
+	}
+	if loc := w.Header().Get("Location"); loc != "/profile" {
+		t.Errorf("Location = %q, want /profile", loc)
 	}
 }
 
@@ -519,5 +655,60 @@ func TestFeedContentHTMLUnescapesEntities(t *testing.T) {
 	want := `<span class="s">"hello"</span>`
 	if got != want {
 		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+// --- Type specimen ----------------------------------------------------------
+
+func TestTypeSpecimenIsAdminOnly(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+
+	w := get(h, "/admin/type")
+	if w.Code != http.StatusSeeOther || !strings.Contains(w.Header().Get("Location"), "login") {
+		t.Fatalf("anonymous GET /admin/type: status %d to %q, want 303 to a login page",
+			w.Code, w.Header().Get("Location"))
+	}
+
+	portfolio := signIn(t, h, "/portfolio/login", portfolioPassword)
+	if w := get(h, "/admin/type", portfolio); w.Code != http.StatusSeeOther {
+		t.Errorf("portfolio session GET /admin/type: status %d, want 303", w.Code)
+	}
+}
+
+func TestTypeSpecimenRendersRolesAndPostSample(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+	admin := signIn(t, h, "/admin/login", adminPassword)
+
+	w := get(h, "/admin/type", admin)
+	if w.Code != http.StatusOK {
+		t.Fatalf("GET /admin/type: status %d, want 200", w.Code)
+	}
+	if got := w.Header().Get("X-Robots-Tag"); !strings.Contains(got, "noindex") {
+		t.Errorf("X-Robots-Tag = %q, want noindex", got)
+	}
+	body := w.Body.String()
+	for _, want := range []string{
+		"/static/typespec.js",         // page-only script
+		`class="type-page-title`,      // a recipe sample
+		"data-type-target",            // rows the script reads values from
+		`<article class="leaf">`,      // the real post markup
+		`<div class="prose">`,         // through the real prose styles
+		"<blockquote>", "<ol>", "<h4", // the full post sample
+		`class="chroma"`, // highlighted at render, like a saved post
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("/admin/type missing %q", want)
+		}
+	}
+}
+
+func TestTypeSpecimenScriptLoadsOnlyThere(t *testing.T) {
+	_, h, _, _ := newTestServer(t)
+	admin := signIn(t, h, "/admin/login", adminPassword)
+
+	for _, path := range []string{"/", "/admin", "/profile"} {
+		if strings.Contains(get(h, path, admin).Body.String(), "typespec.js") {
+			t.Errorf("%s loads typespec.js; it belongs to /admin/type only", path)
+		}
 	}
 }

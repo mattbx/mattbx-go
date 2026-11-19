@@ -294,13 +294,37 @@ function initGrain() {
   window.addEventListener("pagehide", stop);
 }
 
+// The drawer only exists from 64rem (main.css). Below that the nav's
+// Profile link is a plain link to /profile.
+const profileDesktop = window.matchMedia("(min-width: 64rem)");
+
+// /profile renders no drawer; there the link is just a link.
+function hasProfileDrawer() {
+  return document.getElementById("profile-panel") !== null;
+}
+
+// The nav link only describes the drawer while it can open one.
+function syncProfileLinks() {
+  const open = document.documentElement.classList.contains("profile-open");
+  document.querySelectorAll("a[data-profile-toggle]").forEach((link) => {
+    if (profileDesktop.matches && hasProfileDrawer()) {
+      link.setAttribute("aria-controls", "profile-panel");
+      link.setAttribute("aria-expanded", open ? "true" : "false");
+    } else {
+      link.removeAttribute("aria-controls");
+      link.removeAttribute("aria-expanded");
+    }
+  });
+}
+
 function setProfileOpen(open) {
   const root = document.documentElement;
   const panel = document.getElementById("profile-panel");
   root.classList.toggle("profile-open", open);
-  document.querySelectorAll("[data-profile-toggle]").forEach((btn) => {
+  document.querySelectorAll("button[data-profile-toggle]").forEach((btn) => {
     btn.setAttribute("aria-expanded", open ? "true" : "false");
   });
+  syncProfileLinks();
   if (!panel) return;
   panel.setAttribute("aria-hidden", open ? "false" : "true");
   if (open) panel.removeAttribute("inert");
@@ -308,11 +332,40 @@ function setProfileOpen(open) {
 }
 
 function initProfileToggle() {
-  document.querySelectorAll("[data-profile-toggle]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+  document.querySelectorAll("[data-profile-toggle]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      if (el.tagName === "A") {
+        // Small screens, and new-tab clicks, follow the link to /profile.
+        if (!profileDesktop.matches || !hasProfileDrawer()) return;
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+      }
       setProfileOpen(!document.documentElement.classList.contains("profile-open"));
     });
   });
+  syncProfileLinks();
+  profileDesktop.addEventListener("change", onProfileBreakpoint);
+}
+
+// Below 64rem the drawer is hidden. If focus was inside it, hand focus to the
+// nav link so it does not fall back to the page. The open state is kept, so
+// the drawer comes back open when the window widens again. Browsers may blur
+// the hidden element before the change event runs, so track where focus last
+// landed rather than trusting activeElement alone.
+let focusInDrawer = false;
+document.addEventListener("focusin", (e) => {
+  const panel = document.getElementById("profile-panel");
+  focusInDrawer = !!panel && panel.contains(e.target);
+});
+
+function onProfileBreakpoint() {
+  syncProfileLinks();
+  if (profileDesktop.matches || !focusInDrawer) return;
+  const active = document.activeElement;
+  const panel = document.getElementById("profile-panel");
+  if (active && active !== document.body && !panel?.contains(active)) return;
+  focusInDrawer = false;
+  document.querySelector("a[data-profile-toggle]")?.focus();
 }
 
 function initThemeSwitcher() {

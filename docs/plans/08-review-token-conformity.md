@@ -63,10 +63,7 @@ Known already:
 3. **Tailwind conformity.** Every place a token shadows a Tailwind default with a different
    meaning (the spacing scale first; check type, container, radius, breakpoint namespaces too),
    any arbitrary values, and a clear recommendation on what lives in utilities vs `main.css`.
-4. **Proposed set,** kept small:
-   - **Type:** the role list (fewer than eight), with size / line height / weight / tracking /
-     case / font (Inter vs mono) per role, the fluid display role as built, and how post prose
-     and the resume map onto it
+4. **Proposed set,** kept small (type is out of scope here - see the note at the top):
    - **Spacing:** standard Tailwind scale; how the Figma-exact values (16px gutter, 24px column
      gap, 390px drawer...) are expressed - semantic tokens only where they earn it
    - **Colour:** one semantic naming layer across all five themes (page, fg, dim, muted, line,
@@ -78,7 +75,7 @@ Known already:
    except where you flag a deliberate tweak. Recommend a way to prove it (e.g. the review 06
    screenshot matrix before and after at 375 / 768 / 1024 / 1280 / 1512 in two themes). Flag
    anything that overlaps plan 07 or the M3b polish plan.
-7. **Questions for Matt** - only real decisions (e.g. a size two roles would merge into, the
+7. **Questions for Matt** - only real decisions (e.g. a spacing step two tokens would merge into, the
    Work/Other nav gap), each with your suggested answer.
 
 ## Constraints
@@ -92,4 +89,5 @@ Known already:
 ## Done when
 
 `docs/reviews/08-token-conformity.md` exists with the inventory, hardcoded values, conformity
-issues, a proposed set, the legacy list, a migration outline and questions. No code changed.
+issues, a proposed set (spacing, colour, motion and the rest - no type roles), the legacy list,
+a migration outline and questions. No code changed.

@@ -123,6 +123,9 @@
     flagMissing();
     // Display size tracks the column width; web fonts can swap in late.
     window.addEventListener("resize", refresh);
+    // Opening the drawer narrows the column without resizing the window.
+    const column = document.querySelector(".shell__primary");
+    if (column && "ResizeObserver" in window) new ResizeObserver(refresh).observe(column);
     document.fonts?.ready.then(refresh);
   };
 

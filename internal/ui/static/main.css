@@ -764,15 +764,11 @@ footer a:hover { color: var(--color-fg); opacity: 1; }
   min-width: 0;
 }
 
+/* Type comes from the type-ledger-title recipe (work rows) or the blog
+   override below - keep it out of this unlayered rule so recipe edits land. */
 .entry__title {
   min-width: 0;
   margin-block: 0;
-  font-family: var(--font-ui);
-  font-size: var(--text-ledger-title);
-  line-height: var(--text-ledger-title--line-height);
-  font-weight: var(--text-ledger-title--font-weight);
-  letter-spacing: var(--text-ledger-title--letter-spacing);
-  text-transform: var(--case-ledger-title);
 }
 .entry__link:has(.entry__meta) .entry__title {
   font: inherit;

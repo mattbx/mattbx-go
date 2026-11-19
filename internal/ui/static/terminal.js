@@ -344,7 +344,28 @@ function initProfileToggle() {
     });
   });
   syncProfileLinks();
-  profileDesktop.addEventListener("change", syncProfileLinks);
+  profileDesktop.addEventListener("change", onProfileBreakpoint);
+}
+
+// Below 64rem the drawer is hidden. If focus was inside it, hand focus to the
+// nav link so it does not fall back to the page. The open state is kept, so
+// the drawer comes back open when the window widens again. Browsers may blur
+// the hidden element before the change event runs, so track where focus last
+// landed rather than trusting activeElement alone.
+let focusInDrawer = false;
+document.addEventListener("focusin", (e) => {
+  const panel = document.getElementById("profile-panel");
+  focusInDrawer = !!panel && panel.contains(e.target);
+});
+
+function onProfileBreakpoint() {
+  syncProfileLinks();
+  if (profileDesktop.matches || !focusInDrawer) return;
+  const active = document.activeElement;
+  const panel = document.getElementById("profile-panel");
+  if (active && active !== document.body && !panel?.contains(active)) return;
+  focusInDrawer = false;
+  document.querySelector("a[data-profile-toggle]")?.focus();
 }
 
 function initThemeSwitcher() {
